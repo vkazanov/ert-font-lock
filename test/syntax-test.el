@@ -4,7 +4,7 @@
 
 (require 'est)
 
-(ert-deftest test-syntax-highlight-caret-simple ()
+(ert-deftest test-syntax-highlight-caret-multiple-faces ()
   (let ((str "
 var abc = function(d) {
 //   ^ font-lock-variable-name-face
@@ -23,3 +23,17 @@ var abc = function(d) {
 ")
          (tests (est--parse-test-comments str)))
     (should-error (est--check-syntax-highlighting str tests))))
+
+(ert-deftest test-syntax-highlight-arrow-face ()
+  (should (est-test-font-lock "
+var abc = function(d) {
+//   <- font-lock-keyword-fac
+};
+")))
+
+(ert-deftest test-syntax-highlight-arrow-wrong ()
+  (should-error (est-test-font-lock "
+var abc = function(d) {
+//   <- not-face
+};
+")))

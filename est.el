@@ -13,7 +13,9 @@
   (let ((tests '())
         ;; start with the second line
         (curline 2)
-        (linetocheck -1))
+        (linetocheck -1)
+        commentcol
+        caretcol)
     (with-temp-buffer
       (insert test-string)
 
@@ -26,32 +28,33 @@
 
       ;; look for assertions
       (while (not (eobp))
-        (message "Line: %s" (buffer-substring-no-properties (line-beginning-position) (line-end-position)))
-
         (skip-syntax-forward " ")
+
         ;; looking at at comment start or a proper line to be highlighted?
         (if (or (looking-at "\\s<")
                 (looking-at comment-start))
             (progn
-              ;; looks like a comment
+              ;; remember the comment start column
+              (setq commentcol (- (point) (line-beginning-position)))
 
               ;; reset to the beginning of the comment body
               (comment-beginning)
 
-              ;; start looking for carets
-              (while (re-search-forward "\\(\\^\\) +\\(!?\\)\\([[:alnum:]\\._-]+\\)" (line-end-position) t)
-                ;; TODO: this should just be a warning
-                (cl-assert (> linetocheck -1))
+              ;; looking up the caret
+              (when (re-search-forward "\\(\\^\\|<-\\) +\\(!?\\)\\([[:alnum:]\\._-]+\\)" (line-end-position) t)
+                ;; remember the caret/arrow position
+                (setq caretcol (- (match-beginning 1) (line-beginning-position)))
 
-                ;; TODO: check if the face exists, report if it
-                ;; doesn't and do not register the test in this case
-
-                ;; TODO: negation: just add to the regexp and check for it
+                (unless (> linetocheck -1)
+                  (error "Trying to specify a test without a line to test"))
 
                 (let* (;; the line to be checked
                        (line linetocheck)
-                       ;; line start - match-beg = column
-                       (column (- (match-beginning 1) (line-beginning-position)))
+                       ;; either comment start (for arrows) or caret
+                       ;; column
+                       (column (if (equal (match-string 1) "^")
+                                   caretcol
+                                 commentcol))
                        ;; negate the face?
                        (negation (string-equal (match-string 2) "!"))
                        ;; the face that is supposed to be in the position specified
@@ -60,12 +63,12 @@
                        ;; the test itself
                        (test (list :line line :column column :face face :negation negation)) )
 
-                  (message "Found a caret: %s" test)
                   (push test tests))))
           ;; else: not a comment, remember it
           (setq linetocheck curline))
         (forward-line)
         (cl-incf curline)))
+
     (reverse tests)))
 
 (defun est--point-at-line-and-column (line column)
@@ -75,6 +78,7 @@
     (forward-line (1- line))
     (move-to-column column)
     (point)))
+
 
 (defun est--check-syntax-highlighting (test-string tests)
   "Check if TEST-STRING is fontified as per TESTS."
@@ -89,17 +93,25 @@
     (dolist (test tests)
       (let* ((line (plist-get test :line))
              (column (plist-get test :column))
-             (expected-face (plist-get test :face))
+             (expected-face (intern (plist-get test :face)))
              (negation (plist-get test :negation))
              (actual-face (get-text-property (est--point-at-line-and-column line column) 'face)))
-        (if negation
-            (should-not (eq actual-face (intern expected-face)))
-          (should (eq actual-face (intern expected-face))))))))
 
-(defun ert-test-syntax-highlighting (test-string)
+        (when (not (eq actual-face expected-face))
+          (ert-fail
+           (list (format "Expected face %s, got %s on line %d column %d"
+                         actual-face expected-face line column))))
+
+        (when (and negation (eq actual-face expected-face))
+          (ert-fail
+           (list (format "Did not expect face %s face on line %d, column %d"
+                         actual-face line column))))))))
+
+(defun est-test-font-lock (test-string)
   "ERT test for syntax highlighting of TEST-STRING."
-  (let ((tests (est--parse-test-comments test-string)))
-    (est--check-syntax-highlighting test-string tests)))
+  (est--check-syntax-highlighting
+   test-string (est--parse-test-comments test-string))
+  (ert-pass))
 
 
 (provide 'est)
