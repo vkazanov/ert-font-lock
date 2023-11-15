@@ -39,7 +39,7 @@
               (comment-beginning)
 
               ;; start looking for carets
-              (while (re-search-forward "\\(\\^\\) +\\([[:alnum:]\\._-]+\\)" (line-end-position) t)
+              (while (re-search-forward "\\(\\^\\) +\\(!?\\)\\([[:alnum:]\\._-]+\\)" (line-end-position) t)
                 ;; TODO: this should just be a warning
                 (cl-assert (> linetocheck -1))
 
@@ -52,11 +52,13 @@
                        (line linetocheck)
                        ;; line start - match-beg = column
                        (column (- (match-beginning 1) (line-beginning-position)))
-                       ;; the face that is supposed to be there
-                       (face (match-string 2))
+                       ;; negate the face?
+                       (negation (string-equal (match-string 2) "!"))
+                       ;; the face that is supposed to be in the position specified
+                       (face (match-string 3))
 
                        ;; the test itself
-                       (test (list :line line :column column :face face :negation nil)) )
+                       (test (list :line line :column column :face face :negation negation)) )
 
                   (message "Found a caret: %s" test)
                   (push test tests))))
@@ -71,16 +73,20 @@
   (save-excursion
     (goto-char (point-min))
     (forward-line (1- line))
-    (forward-char (or column 0))
+    (move-to-column column)
     (point)))
 
-(defun est--check-syntax-highlighting (test-string test-comments)
-  "Check if TEST-STRING is fontified as per TEST-COMMENTS."
+(defun est--check-syntax-highlighting (test-string tests)
+  "Check if TEST-STRING is fontified as per TESTS."
   (with-temp-buffer
     (insert test-string)
-    (javascript-mode) ;; Or the relevant major mode
+
+    ;; fontify
+    (javascript-mode)
     (font-lock-ensure)
-    (dolist (test test-comments)
+
+    ;; check faces specified by TESTS
+    (dolist (test tests)
       (let* ((line (plist-get test :line))
              (column (plist-get test :column))
              (expected-face (plist-get test :face))
@@ -92,8 +98,8 @@
 
 (defun ert-test-syntax-highlighting (test-string)
   "ERT test for syntax highlighting of TEST-STRING."
-  (let ((test-comments (est--parse-test-comments test-string)))
-    (est--check-syntax-highlighting test-string test-comments)))
+  (let ((tests (est--parse-test-comments test-string)))
+    (est--check-syntax-highlighting test-string tests)))
 
 
 (provide 'est)
