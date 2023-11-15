@@ -2,6 +2,9 @@
 
 ;;; Commentary:
 ;;
+;; TODO: loading from example files (that have their mode specified)
+;; TODO: specify string mode
+;; TODO: testing convenience macro for string
 
 ;;; Code:
 
@@ -107,7 +110,7 @@
            (list (format "Did not expect face %s face on line %d, column %d"
                          actual-face line column))))))))
 
-(defun est-test-font-lock (test-string)
+(defun est-test-font-lock-string (test-string)
   "ERT test for syntax highlighting of TEST-STRING."
   (est--check-syntax-highlighting
    test-string (est--parse-test-comments test-string))

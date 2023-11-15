@@ -25,14 +25,14 @@ var abc = function(d) {
     (should-error (est--check-syntax-highlighting str tests))))
 
 (ert-deftest test-syntax-highlight-arrow-face ()
-  (should (est-test-font-lock "
+  (est-test-font-lock-string "
 var abc = function(d) {
-//   <- font-lock-keyword-fac
+//   <- font-lock-keyword-face
 };
-")))
+"))
 
 (ert-deftest test-syntax-highlight-arrow-wrong ()
-  (should-error (est-test-font-lock "
+  (should-error (est-test-font-lock-string "
 var abc = function(d) {
 //   <- not-face
 };
