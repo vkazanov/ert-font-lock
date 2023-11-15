@@ -9,7 +9,7 @@
 first
 // ^ face.face1
 ")
-         (asserts (est--parse-test-comments str)))
+         (asserts (est--parse-test-comments str 'javascript-mode)))
     (should (eql (length asserts) 1))
     (should (equal (car asserts)
                    '(:line 2 :column 3 :face "face.face1" :negation nil)))))
@@ -20,7 +20,7 @@ first
 // ^ !face
 // ^ face
 ")
-         (asserts (est--parse-test-comments str)))
+         (asserts (est--parse-test-comments str 'javascript-mode)))
     (should (eql (length asserts) 2))
     (should (equal asserts
                    '((:line 2 :column 3 :face "face" :negation t)
@@ -35,7 +35,7 @@ first
 //     ^ face-face.face3
    //  ^ face_face.face4
 ")
-         (asserts (est--parse-test-comments str)))
+         (asserts (est--parse-test-comments str 'javascript-mode)))
     (should (eql (length asserts) 4))
     (should (equal asserts
                    '((:line 2 :column 3 :face "face1" :negation nil)
@@ -52,7 +52,7 @@ second
 //   ^ face3
 third
 ")
-         (asserts (est--parse-test-comments str)))
+         (asserts (est--parse-test-comments str 'javascript-mode)))
     (should (eql (length asserts) 3))
     (should (equal asserts
                    '((:line 2 :column 3 :face "face1" :negation nil)
@@ -65,7 +65,7 @@ third
 first
 // <- face1
 ")
-         (asserts (est--parse-test-comments str)))
+         (asserts (est--parse-test-comments str 'javascript-mode)))
     (should (eql (length asserts) 1))
     (should (equal (car asserts)
                    '(:line 2 :column 0 :face "face1" :negation nil)))))
@@ -78,7 +78,7 @@ first
   // <- face2
     // <- face3
 ")
-         (asserts (est--parse-test-comments str)))
+         (asserts (est--parse-test-comments str 'javascript-mode)))
     (should (eql (length asserts) 3))
     (should (equal asserts
                    '((:line 2 :column 0 :face "face1" :negation nil)

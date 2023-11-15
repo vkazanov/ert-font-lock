@@ -2,8 +2,8 @@
 
 ;;; Commentary:
 ;;
+;; TODO: more languages for test comment parsing
 ;; TODO: loading from example files (that have their mode specified)
-;; TODO: specify string mode
 ;; TODO: testing convenience macro for string
 
 ;;; Code:
@@ -11,8 +11,9 @@
 (require 'ert)
 (require 'cl-lib)
 
-(defun est--parse-test-comments (test-string)
-  "Parse test comments in TEST-STRING for expected fontification."
+(defun est--parse-test-comments (test-string major-mode-function)
+  "Parse test comments in TEST-STRING for expected fontification in
+a major mode inited by MAJOR-MODE-FUNCTION."
   (let ((tests '())
         ;; start with the second line
         (curline 2)
@@ -22,8 +23,7 @@
     (with-temp-buffer
       (insert test-string)
 
-      ;; TODO: got to be mode-agnostic
-      (javascript-mode)
+      (funcall major-mode-function)
 
       ;; skip the first line
       (goto-char (point-min))
@@ -83,13 +83,14 @@
     (point)))
 
 
-(defun est--check-syntax-highlighting (test-string tests)
-  "Check if TEST-STRING is fontified as per TESTS."
+(defun est--check-syntax-highlighting (test-string tests major-mode-function)
+  "Check if TEST-STRING is fontified as per TESTS in a mode inited
+by MAJOR-MODE-FUNCTION."
   (with-temp-buffer
     (insert test-string)
 
     ;; fontify
-    (javascript-mode)
+    (funcall major-mode-function)
     (font-lock-ensure)
 
     ;; check faces specified by TESTS
@@ -110,10 +111,11 @@
            (list (format "Did not expect face %s face on line %d, column %d"
                          actual-face line column))))))))
 
-(defun est-test-font-lock-string (test-string)
+(defun est-test-font-lock-string (test-string major-mode-function)
   "ERT test for syntax highlighting of TEST-STRING."
   (est--check-syntax-highlighting
-   test-string (est--parse-test-comments test-string))
+   test-string (est--parse-test-comments test-string major-mode-function)
+   major-mode-function)
   (ert-pass))
 
 
