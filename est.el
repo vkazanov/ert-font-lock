@@ -25,10 +25,6 @@
 ;; see <http://www.gnu.org/licenses/>.
 
 ;;; Commentary:
-;;
-;; TODO: more languages for test comment parsing
-;; TODO: loading from example files (that have their mode specified)
-;; TODO: testing convenience macro for string
 
 ;;; Code:
 

@@ -1,0 +1,12 @@
+
+ - [ ] more languages for test comment parsing
+
+ - [ ] loading from example files (that have their mode specified)
+
+ - [ ] testing convenience macro for string
+
+ - [ ] package (autoloads, commentary, README, etc)
+
+ - [ ] announce
+
+ - [ ] suggest for ELPA, discuss syntax highlighting tests in general
