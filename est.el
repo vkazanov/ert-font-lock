@@ -59,9 +59,7 @@
     (- (point) (line-beginning-position))))
 
 (defun est--parse-test-comments ()
-  "Read test assertions from comments in TEST-STRING.
-
-MAJOR-MODE-FUNCTION - a function that would start a major mode."
+  "Read test assertions from comments in the current buffer."
   (let ((tests '())
         (curline 1)
         (linetocheck -1))
@@ -121,10 +119,9 @@ MAJOR-MODE-FUNCTION - a function that would start a major mode."
     (buffer-substring-no-properties (line-beginning-position) (line-end-position))))
 
 (defun est--check-syntax-highlighting (tests)
-  "Check if TEST-STRING is fontified correctly.
-TESTS - list of tests to run.
+  "Check if the current buffer is fontified correctly using TESTS.
 
-MAJOR-MODE-FUNCTION - a function that would start a major mode."
+The function is meant to be run from within an ERT test."
   (dolist (test tests)
     (let* ((line (plist-get test :line))
            (column (plist-get test :column))
@@ -136,25 +133,40 @@ MAJOR-MODE-FUNCTION - a function that would start a major mode."
 
       (when (not (eq actual-face expected-face))
         (ert-fail
-         (list (format "Expected face %s, got %s on line %d column %d: \n%s"
-                       actual-face expected-face line column
-                       line-str))))
+         (format "Expected face %s, got %s on line %d column %d: \n%s"
+                 actual-face expected-face line column
+                 line-str)))
 
       (when (and negation (eq actual-face expected-face))
         (ert-fail
-         (list (format "Did not expect face %s face on line %d, column %d: \n%s"
-                       actual-face line column
-                       line-str)))))))
+         (format "Did not expect face %s face on line %d, column %d: \n%s"
+                 actual-face line column
+                 line-str))))))
 
-(defun est-test-font-lock-string (test-string major-mode-function)
+(defun est-test-font-lock-string (test-string mode)
   "ERT test for syntax highlighting of TEST-STRING.
 
-MAJOR-MODE-FUNCTION - a function that starts the major mode.
+MODE - a major mode to use.
 
-The function is meant to be run from within an ert test."
+The function is meant to be run from within an ERT test."
   (with-temp-buffer
     (insert test-string)
-    (funcall major-mode-function)
+    (funcall mode)
+    (font-lock-ensure)
+
+    (est--check-syntax-highlighting (est--parse-test-comments)))
+
+  (ert-pass))
+
+(defun est-test-font-lock-file (filename mode)
+  "ERT test for syntax highlighting of FILENAME.
+
+MODE - a major mode to use.
+
+The function is meant to be run from within an ERT test."
+  (with-temp-buffer
+    (insert-file-contents filename)
+    (funcall mode)
     (font-lock-ensure)
 
     (est--check-syntax-highlighting (est--parse-test-comments)))

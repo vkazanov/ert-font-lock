@@ -1,6 +1,7 @@
 ;;; Code:
 
 (require 'ert)
+(require 'ert-x)
 
 (require 'est)
 
@@ -34,16 +35,8 @@ var abc = function(d) {
 
       (should-error (est--check-syntax-highlighting (est--parse-test-comments))))))
 
-(ert-deftest test-syntax-highlight-arrow-face ()
-  (est-test-font-lock-string "
-var abc = function(d) {
-//   <- font-lock-keyword-face
-};
-" 'javascript-mode))
+(ert-deftest test-syntax-highlight-correct ()
+  (est-test-font-lock-file (ert-resource-file "correct.js") 'javascript-mode))
 
-(ert-deftest test-syntax-highlight-arrow-wrong ()
-  (should-error (est-test-font-lock-string "
-var abc = function(d) {
-//   <- not-face
-};
-" 'javascript-mode)))
+(ert-deftest test-syntax-highlight-wrong ()
+  (should-error (est-test-font-lock-file (ert-resource-file "broken.js")  'javascript-mode)))

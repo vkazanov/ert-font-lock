@@ -1,7 +1,9 @@
 
  - [X] better assertion context reporting (like, the line checked)
 
- - [ ] loading from example files (that have their mode specified)
+ - [X] loading from example files (that have their mode specified)
+
+ - [ ] fix error reporting messages
 
  - [ ] more languages for test comment parsing
 
