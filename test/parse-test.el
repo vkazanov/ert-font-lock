@@ -10,6 +10,19 @@
     "// comment\n"
     (should-not (est--line-is-comment-p))))
 
+(ert-deftest test-line-is-comment-p--emacs-lisp ()
+
+  (with-temp-buffer-str-mode emacs-lisp-mode
+    "not comment
+;; comment
+"
+    (goto-line 1)
+    (should-not (est--line-is-comment-p))
+    (goto-line 2)
+    (should (est--line-is-comment-p))
+    (goto-line 3)
+    (should-not (est--line-is-comment-p))))
+
 (ert-deftest test-line-is-comment-p--javascript ()
   (with-temp-buffer-str-mode javascript-mode
     "// comment
