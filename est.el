@@ -80,15 +80,17 @@ MAJOR-MODE-FUNCTION - a function that would start a major mode."
             (throw 'continue t))
 
           ;; A comment? Check if it defines assertions
-          (when (re-search-forward "\\(\\^\\|<-\\) +\\(!?\\)\\([[:alnum:]\\._-]+\\)" (line-end-position) t)
+          (when (re-search-forward "\\(\\^\\|<-\\) +\\(!?\\)\\([[:alnum:]\\._-]+\\)"
+                                   (line-end-position) t)
 
             (unless (> linetocheck -1)
               (error "Trying to specify a test without a line to test"))
 
-            (let* (;; the line to be checked
+            ;; construct a test
+            (let* (;; the line number to be checked
                    (line linetocheck)
-                   ;; either comment start (for arrows) or caret
-                   ;; column
+                   ;; either comment start char column (for arrows) or
+                   ;; caret column
                    (column (if (equal (match-string 1) "^")
                                (- (match-beginning 1) (line-beginning-position))
                              (est--get-first-char-column)))
