@@ -1,0 +1,4 @@
+* Emacs Lisp Syntax Test
+
+Emacs Lisp Syntax Test, or EST, is an extension to ERT that supports inline font-locking
+unit testing using syntax inspired by Tree-sitter tests.
