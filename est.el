@@ -32,6 +32,19 @@
 (require 'cl-lib)
 (require 'newcomment)
 
+(defun est--line-is-comment-p ()
+  "Return t if the current line is a comment-only line."
+  (save-excursion
+    (beginning-of-line)
+    (skip-syntax-forward " ")
+    (or (looking-at "\\s<")
+        (looking-at comment-start))))
+
+(defun est--goto-comment-start ()
+  "Move the point to the comment start character."
+  (beginning-of-line)
+  (skip-syntax-forward " "))
+
 (defun est--parse-test-comments (test-string major-mode-function)
   "Read test assertions from comments in TEST-STRING.
 
@@ -53,19 +66,13 @@ MAJOR-MODE-FUNCTION - a function that would start a major mode."
 
       ;; look for assertions
       (while (not (eobp))
-        (skip-syntax-forward " ")
-
-        ;; looking at at comment start or a proper line to be highlighted?
-        (if (or (looking-at "\\s<")
-                (looking-at comment-start))
+        (if (est--line-is-comment-p)
             (progn
               ;; remember the comment start column
+              (est--goto-comment-start)
               (setq commentcol (- (point) (line-beginning-position)))
 
-              ;; reset to the beginning of the comment body
-              (comment-beginning)
-
-              ;; looking up the caret
+              ;; looking up the caret/arrow
               (when (re-search-forward "\\(\\^\\|<-\\) +\\(!?\\)\\([[:alnum:]\\._-]+\\)" (line-end-position) t)
                 ;; remember the caret/arrow position
                 (setq caretcol (- (match-beginning 1) (line-beginning-position)))
@@ -83,12 +90,10 @@ MAJOR-MODE-FUNCTION - a function that would start a major mode."
                        ;; negate the face?
                        (negation (string-equal (match-string 2) "!"))
                        ;; the face that is supposed to be in the position specified
-                       (face (match-string 3))
+                       (face (match-string 3)))
 
-                       ;; the test itself
-                       (test (list :line line :column column :face face :negation negation)) )
+                  (push (list :line line :column column :face face :negation negation) tests))))
 
-                  (push test tests))))
           ;; else: not a comment, remember it
           (setq linetocheck curline))
         (forward-line)
