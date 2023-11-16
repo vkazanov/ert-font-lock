@@ -44,14 +44,16 @@
   (save-excursion
     (beginning-of-line)
     (skip-syntax-forward " ")
-    (or
-     ;; try the most convenient approach
-     (looking-at "\\s<")
-     ;; a bit smarter
-     (and comment-start (looking-at (regexp-quote comment-start)))
-     ;; hardcoded
-     (and (derived-mode-p 'c-mode 'c++-mode 'java-mode)
-          (looking-at-p "//")))))
+    ;; skip empty lines
+    (unless (eolp)
+      (or
+       ;; try the most convenient approach
+       (looking-at "\\s<")
+       ;; a bit smarter
+       (and comment-start (looking-at (regexp-quote comment-start)))
+       ;; hardcoded
+       (and (derived-mode-p 'c-mode 'c++-mode 'java-mode)
+            (looking-at-p "//"))))))
 
 (defun est--goto-first-char ()
   "Move the point to the first character."
