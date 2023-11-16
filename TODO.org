@@ -1,7 +1,7 @@
 
  - [ ] loading from example files (that have their mode specified)
 
- - [ ] testing convenience macro for string
+ - [ ] better assertion context reporting (like, the line checked)
 
  - [ ] more languages for test comment parsing
 
