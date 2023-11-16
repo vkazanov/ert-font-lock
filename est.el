@@ -1,4 +1,28 @@
-;;; est.el --- Emacs Lisp Syntax Testing   -*- lexical-binding: t -*-
+;;; est.el --- Emacs Lisp Syntax Testing   -*- coding: utf-8; lexical-binding: t -*-
+
+;; Copyright (C) 2023 Vladimir Kazanov
+
+;; Author: Vladimir Kazanov
+;; Keywords: lisp, test
+;; URL: https://github.com/vkazanov/est
+;; Version: 0.1.0
+;; Package-Requires: ((emacs "29.1"))
+
+;; This program is free software; you can redistribute it and/or modify
+;; it under the terms of the GNU General Public License as published by
+;; the Free Software Foundation, either version 3 of the License, or
+;; (at your option) any later version.
+
+;; This program is distributed in the hope that it will be useful,
+;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+;; GNU General Public License for more details.
+
+;; You should have received a copy of the GNU General Public License
+;; along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+;; For a full copy of the GNU General Public License
+;; see <http://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 ;;
@@ -10,10 +34,12 @@
 
 (require 'ert)
 (require 'cl-lib)
+(require 'newcomment)
 
 (defun est--parse-test-comments (test-string major-mode-function)
-  "Parse test comments in TEST-STRING for expected fontification in
-a major mode inited by MAJOR-MODE-FUNCTION."
+  "Read test assertions from comments in TEST-STRING.
+
+MAJOR-MODE-FUNCTION - a function that would start a major mode."
   (let ((tests '())
         ;; start with the second line
         (curline 2)
@@ -84,8 +110,10 @@ a major mode inited by MAJOR-MODE-FUNCTION."
 
 
 (defun est--check-syntax-highlighting (test-string tests major-mode-function)
-  "Check if TEST-STRING is fontified as per TESTS in a mode inited
-by MAJOR-MODE-FUNCTION."
+  "Check if TEST-STRING is fontified correctly.
+TESTS - list of tests to run.
+
+MAJOR-MODE-FUNCTION - a function that would start a major mode."
   (with-temp-buffer
     (insert test-string)
 
@@ -112,7 +140,11 @@ by MAJOR-MODE-FUNCTION."
                          actual-face line column))))))))
 
 (defun est-test-font-lock-string (test-string major-mode-function)
-  "ERT test for syntax highlighting of TEST-STRING."
+  "ERT test for syntax highlighting of TEST-STRING.
+
+MAJOR-MODE-FUNCTION - a function that starts the major mode.
+
+The function is meant to be run from within an ert test."
   (est--check-syntax-highlighting
    test-string (est--parse-test-comments test-string major-mode-function)
    major-mode-function)
