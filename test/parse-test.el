@@ -4,7 +4,66 @@
 
 (require 'est)
 
-(ert-deftest test-parse-comments-single-line-single-caret ()
+(ert-deftest test-line-is-comment-p--fundamental ()
+
+  (with-temp-buffer-str-mode fundamental-mode
+    "// comment\n"
+    (should-not (est--line-is-comment-p))))
+
+(ert-deftest test-line-is-comment-p--javascript ()
+  (with-temp-buffer-str-mode javascript-mode
+    "// comment
+
+   // comment, after a blank line
+
+var abc = function(d) {};
+"
+    (goto-line 1)
+    (should (est--line-is-comment-p))
+
+    (goto-line 2)
+    (should-not (est--line-is-comment-p))
+
+    (goto-line 3)
+    (should (est--line-is-comment-p))
+
+    (goto-line 4)
+    (should-not (est--line-is-comment-p))
+
+    (goto-line 5)
+    (should-not (est--line-is-comment-p))))
+
+(ert-deftest test-line-is-comment-p--python ()
+
+  (with-temp-buffer-str-mode python-mode
+    "# comment
+
+   # comment
+print(\"Hello, world!\")"
+    (goto-line 1)
+    (should (est--line-is-comment-p))
+
+    (goto-line 2)
+    (should-not (est--line-is-comment-p))
+
+    (goto-line 3)
+    (should (est--line-is-comment-p))
+
+    (goto-line 4)
+    (should-not (est--line-is-comment-p))))
+
+(ert-deftest test-line-is-comment-p--c ()
+
+  (with-temp-buffer-str-mode c-mode
+    "// comment
+/* also comment */"
+    (goto-line 1)
+    (should (est--line-is-comment-p))
+
+    (goto-line 2)
+    (should (est--line-is-comment-p))))
+
+(ert-deftest test-parse-comments--single-line-single-caret ()
   (let* ((str "
 first
 // ^ face.face1
@@ -19,7 +78,7 @@ first
       (should (equal (car asserts)
                      '(:line 2 :column 3 :face "face.face1" :negation nil))))))
 
-(ert-deftest test-parse-comments-caret-negation ()
+(ert-deftest test-parse-comments--caret-negation ()
   (let* ((str "
 first
 // ^ !face
@@ -37,7 +96,7 @@ first
                        (:line 2 :column 3 :face "face" :negation nil)))))))
 
 
-(ert-deftest test-parse-comments-single-line-multiple-carets ()
+(ert-deftest test-parse-comments--single-line-multiple-carets ()
   (let* ((str "
 first
 // ^ face1
@@ -59,7 +118,7 @@ first
                        (:line 2 :column 7 :face "face-face.face3" :negation nil)
                        (:line 2 :column 7 :face "face_face.face4" :negation nil)))))))
 
-(ert-deftest test-parse-comments-multiple-line-multiple-carets ()
+(ert-deftest test-parse-comments--multiple-line-multiple-carets ()
   (let* ((str "
 first
 // ^ face1
@@ -81,7 +140,7 @@ third
                        (:line 4 :column 5 :face "face3" :negation nil)))))))
 
 
-(ert-deftest test-parse-comments-arrow-single-line-single ()
+(ert-deftest test-parse-comments--arrow-single-line-single ()
   (let* ((str "
 first
 // <- face1
