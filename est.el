@@ -29,6 +29,8 @@
 ;; Emacs Lisp Syntax Testing is an extension to standard Emacs Lisp
 ;; Regresstion Test tool providing a convenient way to check syntax
 ;; highlighting provided by font-lock.
+;;
+;; TODO: expand on usage examples
 
 ;;; Code:
 
@@ -56,7 +58,7 @@
     (est--goto-first-char)
     (- (point) (line-beginning-position))))
 
-(defun est--parse-test-comments (test-string major-mode-function)
+(defun est--parse-test-comments ()
   "Read test assertions from comments in TEST-STRING.
 
 MAJOR-MODE-FUNCTION - a function that would start a major mode."
@@ -64,45 +66,42 @@ MAJOR-MODE-FUNCTION - a function that would start a major mode."
         (curline 1)
         (linetocheck -1))
 
-    (with-temp-buffer
-      (insert test-string)
-      (funcall major-mode-function)
-      (goto-char (point-min))
+    (goto-char (point-min))
 
-      ;; Go through all lines, for comments check if there are
-      ;; assertions. For non-comment line remember the last line seen.
-      (while (not (eobp))
-        (catch 'continue
+    ;; Go through all lines, for comments check if there are
+    ;; assertions. For non-comment line remember the last line seen.
+    (while (not (eobp))
+      (catch 'continue
 
-          ;; Not a comment? remember line number
-          (unless (est--line-is-comment-p)
-            (setq linetocheck curline)
-            (throw 'continue t))
+        ;; Not a comment? remember line number
+        (unless (est--line-is-comment-p)
+          (setq linetocheck curline)
+          (throw 'continue t))
 
-          ;; A comment? Check if it defines assertions
-          (when (re-search-forward "\\(\\^\\|<-\\) +\\(!?\\)\\([[:alnum:]\\._-]+\\)"
-                                   (line-end-position) t)
+        ;; Looking at a comment? Check if it defines assertions
+        (when (re-search-forward "\\(\\^\\|<-\\) +\\(!?\\)\\([[:alnum:]\\._-]+\\)"
+                                 (line-end-position) t)
 
-            (unless (> linetocheck -1)
-              (error "Trying to specify a test without a line to test"))
+          (unless (> linetocheck -1)
+            (error "Trying to specify a test without a line to test"))
 
-            ;; construct a test
-            (let* (;; the line number to be checked
-                   (line linetocheck)
-                   ;; either comment start char column (for arrows) or
-                   ;; caret column
-                   (column (if (equal (match-string 1) "^")
-                               (- (match-beginning 1) (line-beginning-position))
-                             (est--get-first-char-column)))
-                   ;; negate the face?
-                   (negation (string-equal (match-string 2) "!"))
-                   ;; the face that is supposed to be in the position specified
-                   (face (match-string 3)))
+          ;; construct a test
+          (let* (;; the line number to be checked
+                 (line linetocheck)
+                 ;; either comment start char column (for arrows) or
+                 ;; caret column
+                 (column (if (equal (match-string 1) "^")
+                             (- (match-beginning 1) (line-beginning-position))
+                           (est--get-first-char-column)))
+                 ;; negate the face?
+                 (negation (string-equal (match-string 2) "!"))
+                 ;; the face that is supposed to be in the position specified
+                 (face (match-string 3)))
 
-              (push (list :line line :column column :face face :negation negation) tests))))
+            (push (list :line line :column column :face face :negation negation) tests))))
 
-        (cl-incf curline)
-        (forward-line 1)))
+      (cl-incf curline)
+      (forward-line 1))
 
     (reverse tests)))
 
@@ -121,39 +120,31 @@ MAJOR-MODE-FUNCTION - a function that would start a major mode."
     (forward-line (1- line-number))
     (buffer-substring-no-properties (line-beginning-position) (line-end-position))))
 
-(defun est--check-syntax-highlighting (test-string tests major-mode-function)
+(defun est--check-syntax-highlighting (tests)
   "Check if TEST-STRING is fontified correctly.
 TESTS - list of tests to run.
 
 MAJOR-MODE-FUNCTION - a function that would start a major mode."
-  (with-temp-buffer
-    (insert test-string)
+  (dolist (test tests)
+    (let* ((line (plist-get test :line))
+           (column (plist-get test :column))
+           (expected-face (intern (plist-get test :face)))
+           (negation (plist-get test :negation))
 
-    ;; fontify
-    (funcall major-mode-function)
-    (font-lock-ensure)
+           (actual-face (get-text-property (est--point-at-line-and-column line column) 'face))
+           (line-str (est--get-line line)))
 
-    ;; check faces specified by TESTS
-    (dolist (test tests)
-      (let* ((line (plist-get test :line))
-             (column (plist-get test :column))
-             (expected-face (intern (plist-get test :face)))
-             (negation (plist-get test :negation))
+      (when (not (eq actual-face expected-face))
+        (ert-fail
+         (list (format "Expected face %s, got %s on line %d column %d: \n%s"
+                       actual-face expected-face line column
+                       line-str))))
 
-             (actual-face (get-text-property (est--point-at-line-and-column line column) 'face))
-             (line-str (est--get-line line)))
-
-        (when (not (eq actual-face expected-face))
-          (ert-fail
-           (list (format "Expected face %s, got %s on line %d column %d: \n%s"
-                         actual-face expected-face line column
-                         line-str))))
-
-        (when (and negation (eq actual-face expected-face))
-          (ert-fail
-           (list (format "Did not expect face %s face on line %d, column %d: \n%s"
-                         actual-face line column
-                         line-str))))))))
+      (when (and negation (eq actual-face expected-face))
+        (ert-fail
+         (list (format "Did not expect face %s face on line %d, column %d: \n%s"
+                       actual-face line column
+                       line-str)))))))
 
 (defun est-test-font-lock-string (test-string major-mode-function)
   "ERT test for syntax highlighting of TEST-STRING.
@@ -161,9 +152,13 @@ MAJOR-MODE-FUNCTION - a function that would start a major mode."
 MAJOR-MODE-FUNCTION - a function that starts the major mode.
 
 The function is meant to be run from within an ert test."
-  (est--check-syntax-highlighting
-   test-string (est--parse-test-comments test-string major-mode-function)
-   major-mode-function)
+  (with-temp-buffer
+    (insert test-string)
+    (funcall major-mode-function)
+    (font-lock-ensure)
+
+    (est--check-syntax-highlighting (est--parse-test-comments)))
+
   (ert-pass))
 
 

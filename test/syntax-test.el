@@ -13,19 +13,26 @@ var abc = function(d) {
 };
 
 "))
-    (est--check-syntax-highlighting
-     str
-     (est--parse-test-comments str 'javascript-mode)
-     'javascript-mode)))
+    (with-temp-buffer
+      (insert str)
+      (javascript-mode)
+      (font-lock-ensure)
+
+      (est--check-syntax-highlighting
+       (est--parse-test-comments)))))
 
 (ert-deftest test-syntax-highlight-caret-wrong-face ()
   (let* ((str "
 var abc = function(d) {
 //   ^ not-a-face
 };
-")
-         (tests (est--parse-test-comments str 'javascript-mode)))
-    (should-error (est--check-syntax-highlighting str tests 'javascript-mode))))
+"))
+    (with-temp-buffer
+      (insert str)
+      (javascript-mode)
+      (font-lock-ensure)
+
+      (should-error (est--check-syntax-highlighting (est--parse-test-comments))))))
 
 (ert-deftest test-syntax-highlight-arrow-face ()
   (est-test-font-lock-string "

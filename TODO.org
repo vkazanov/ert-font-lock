@@ -1,13 +1,15 @@
 
- - [ ] loading from example files (that have their mode specified)
+ - [X] better assertion context reporting (like, the line checked)
 
- - [ ] better assertion context reporting (like, the line checked)
+ - [ ] loading from example files (that have their mode specified)
 
  - [ ] more languages for test comment parsing
 
  - [ ] package (autoloads, commentary, README, etc)
 
  - [ ] test with emacs 27.1, 28.1 (lower dependency requirements)
+
+ - [ ] try using for internal projects
 
  - [ ] announce
 
