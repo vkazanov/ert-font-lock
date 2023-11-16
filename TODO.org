@@ -1,9 +1,9 @@
 
- - [ ] more languages for test comment parsing
-
  - [ ] loading from example files (that have their mode specified)
 
  - [ ] testing convenience macro for string
+
+ - [ ] more languages for test comment parsing
 
  - [ ] package (autoloads, commentary, README, etc)
 
