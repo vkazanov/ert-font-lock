@@ -25,12 +25,17 @@
 ;; see <http://www.gnu.org/licenses/>.
 
 ;;; Commentary:
+;;
+;; Emacs Lisp Syntax Testing is an extension to standard Emacs Lisp
+;; Regresstion Test tool providing a convenient way to check syntax
+;; highlighting provided by font-lock.
 
 ;;; Code:
 
 (require 'ert)
 (require 'cl-lib)
 (require 'newcomment)
+
 
 (defun est--line-is-comment-p ()
   "Return t if the current line is a comment-only line."
@@ -40,64 +45,62 @@
     (or (looking-at "\\s<")
         (looking-at comment-start))))
 
-(defun est--goto-comment-start ()
-  "Move the point to the comment start character."
+(defun est--goto-first-char ()
+  "Move the point to the first character."
   (beginning-of-line)
   (skip-syntax-forward " "))
+
+(defun est--get-first-char-column ()
+  "Get the position of the first non-empty char in the current line."
+  (save-excursion
+    (est--goto-first-char)
+    (- (point) (line-beginning-position))))
 
 (defun est--parse-test-comments (test-string major-mode-function)
   "Read test assertions from comments in TEST-STRING.
 
 MAJOR-MODE-FUNCTION - a function that would start a major mode."
   (let ((tests '())
-        ;; start with the second line
-        (curline 2)
-        (linetocheck -1)
-        commentcol
-        caretcol)
+        (curline 1)
+        (linetocheck -1))
+
     (with-temp-buffer
       (insert test-string)
-
       (funcall major-mode-function)
-
-      ;; skip the first line
       (goto-char (point-min))
-      (forward-line)
 
-      ;; look for assertions
+      ;; Go through all lines, for comments check if there are
+      ;; assertions. For non-comment line remember the last line seen.
       (while (not (eobp))
-        (if (est--line-is-comment-p)
-            (progn
-              ;; remember the comment start column
-              (est--goto-comment-start)
-              (setq commentcol (- (point) (line-beginning-position)))
+        (catch 'continue
 
-              ;; looking up the caret/arrow
-              (when (re-search-forward "\\(\\^\\|<-\\) +\\(!?\\)\\([[:alnum:]\\._-]+\\)" (line-end-position) t)
-                ;; remember the caret/arrow position
-                (setq caretcol (- (match-beginning 1) (line-beginning-position)))
+          ;; Not a comment? remember line number
+          (unless (est--line-is-comment-p)
+            (setq linetocheck curline)
+            (throw 'continue t))
 
-                (unless (> linetocheck -1)
-                  (error "Trying to specify a test without a line to test"))
+          ;; A comment? Check if it defines assertions
+          (when (re-search-forward "\\(\\^\\|<-\\) +\\(!?\\)\\([[:alnum:]\\._-]+\\)" (line-end-position) t)
 
-                (let* (;; the line to be checked
-                       (line linetocheck)
-                       ;; either comment start (for arrows) or caret
-                       ;; column
-                       (column (if (equal (match-string 1) "^")
-                                   caretcol
-                                 commentcol))
-                       ;; negate the face?
-                       (negation (string-equal (match-string 2) "!"))
-                       ;; the face that is supposed to be in the position specified
-                       (face (match-string 3)))
+            (unless (> linetocheck -1)
+              (error "Trying to specify a test without a line to test"))
 
-                  (push (list :line line :column column :face face :negation negation) tests))))
+            (let* (;; the line to be checked
+                   (line linetocheck)
+                   ;; either comment start (for arrows) or caret
+                   ;; column
+                   (column (if (equal (match-string 1) "^")
+                               (- (match-beginning 1) (line-beginning-position))
+                             (est--get-first-char-column)))
+                   ;; negate the face?
+                   (negation (string-equal (match-string 2) "!"))
+                   ;; the face that is supposed to be in the position specified
+                   (face (match-string 3)))
 
-          ;; else: not a comment, remember it
-          (setq linetocheck curline))
-        (forward-line)
-        (cl-incf curline)))
+              (push (list :line line :column column :face face :negation negation) tests))))
+
+        (cl-incf curline)
+        (forward-line 1)))
 
     (reverse tests)))
 
@@ -109,6 +112,12 @@ MAJOR-MODE-FUNCTION - a function that would start a major mode."
     (move-to-column column)
     (point)))
 
+(defun est--get-line (line-number)
+  "Return the content of the line specified by LINE-NUMBER."
+  (save-excursion
+    (goto-char (point-min))
+    (forward-line (1- line-number))
+    (buffer-substring-no-properties (line-beginning-position) (line-end-position))))
 
 (defun est--check-syntax-highlighting (test-string tests major-mode-function)
   "Check if TEST-STRING is fontified correctly.
@@ -128,17 +137,21 @@ MAJOR-MODE-FUNCTION - a function that would start a major mode."
              (column (plist-get test :column))
              (expected-face (intern (plist-get test :face)))
              (negation (plist-get test :negation))
-             (actual-face (get-text-property (est--point-at-line-and-column line column) 'face)))
+
+             (actual-face (get-text-property (est--point-at-line-and-column line column) 'face))
+             (line-str (est--get-line line)))
 
         (when (not (eq actual-face expected-face))
           (ert-fail
-           (list (format "Expected face %s, got %s on line %d column %d"
-                         actual-face expected-face line column))))
+           (list (format "Expected face %s, got %s on line %d column %d: \n%s"
+                         actual-face expected-face line column
+                         line-str))))
 
         (when (and negation (eq actual-face expected-face))
           (ert-fail
-           (list (format "Did not expect face %s face on line %d, column %d"
-                         actual-face line column))))))))
+           (list (format "Did not expect face %s face on line %d, column %d: \n%s"
+                         actual-face line column
+                         line-str))))))))
 
 (defun est-test-font-lock-string (test-string major-mode-function)
   "ERT test for syntax highlighting of TEST-STRING.
