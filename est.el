@@ -113,7 +113,7 @@ DOCSTRING is a docstring to use for the test."
                                  (line-end-position) t)
 
           (unless (> linetocheck -1)
-            (error "Trying to specify a test without a line to test"))
+            (error "Invalid test comment syntax at line %d. Expected a line to test before the comment line." curline))
 
           ;; construct a test
           (let* (;; either comment start char column (for arrows) or

@@ -103,6 +103,15 @@ print(\"Hello, world!\")"
     (goto-line 2)
     (should (est--line-comment-p))))
 
+(ert-deftest test-parse-comments--single-line-error ()
+  (let* ((str "// ^ face.face1")
+         asserts)
+    (with-temp-buffer
+      (insert str)
+      (javascript-mode)
+
+      (should-error (est--parse-test-comments)))))
+
 (ert-deftest test-parse-comments--single-line-single-caret ()
   (let* ((str "
 first
