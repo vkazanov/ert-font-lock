@@ -2,13 +2,13 @@
 
 (require 'ert)
 
-(require 'est)
+(require 'ert-font-lock)
 
 (ert-deftest test-line-comment-p--fundamental ()
 
   (with-temp-buffer-str-mode fundamental-mode
     "// comment\n"
-    (should-not (est--line-comment-p))))
+    (should-not (ert-font-lock--line-comment-p))))
 
 (ert-deftest test-line-comment-p--emacs-lisp ()
 
@@ -17,11 +17,11 @@
 ;; comment
 "
     (goto-line 1)
-    (should-not (est--line-comment-p))
+    (should-not (ert-font-lock--line-comment-p))
     (goto-line 2)
-    (should (est--line-comment-p))
+    (should (ert-font-lock--line-comment-p))
     (goto-line 3)
-    (should-not (est--line-comment-p))))
+    (should-not (ert-font-lock--line-comment-p))))
 
 (ert-deftest test-line-comment-p--shell-script ()
 
@@ -30,9 +30,9 @@
 # comment
 "
     (goto-line 1)
-    (should-not (est--line-comment-p))
+    (should-not (ert-font-lock--line-comment-p))
     (goto-line 2)
-    (should (est--line-comment-p))))
+    (should (ert-font-lock--line-comment-p))))
 
 (ert-deftest test-line-comment-p--php ()
   (skip-unless (featurep 'php-mode))
@@ -43,11 +43,11 @@
 /* comment */
 "
     (goto-line 1)
-    (should-not (est--line-comment-p))
+    (should-not (ert-font-lock--line-comment-p))
     (goto-line 2)
-    (should (est--line-comment-p))
+    (should (ert-font-lock--line-comment-p))
     (goto-line 3)
-    (should (est--line-comment-p))))
+    (should (ert-font-lock--line-comment-p))))
 
 
 (ert-deftest test-line-comment-p--javascript ()
@@ -59,19 +59,19 @@
 var abc = function(d) {};
 "
     (goto-line 1)
-    (should (est--line-comment-p))
+    (should (ert-font-lock--line-comment-p))
 
     (goto-line 2)
-    (should-not (est--line-comment-p))
+    (should-not (ert-font-lock--line-comment-p))
 
     (goto-line 3)
-    (should (est--line-comment-p))
+    (should (ert-font-lock--line-comment-p))
 
     (goto-line 4)
-    (should-not (est--line-comment-p))
+    (should-not (ert-font-lock--line-comment-p))
 
     (goto-line 5)
-    (should-not (est--line-comment-p))))
+    (should-not (ert-font-lock--line-comment-p))))
 
 (ert-deftest test-line-comment-p--python ()
 
@@ -81,16 +81,16 @@ var abc = function(d) {};
    # comment
 print(\"Hello, world!\")"
     (goto-line 1)
-    (should (est--line-comment-p))
+    (should (ert-font-lock--line-comment-p))
 
     (goto-line 2)
-    (should-not (est--line-comment-p))
+    (should-not (ert-font-lock--line-comment-p))
 
     (goto-line 3)
-    (should (est--line-comment-p))
+    (should (ert-font-lock--line-comment-p))
 
     (goto-line 4)
-    (should-not (est--line-comment-p))))
+    (should-not (ert-font-lock--line-comment-p))))
 
 (ert-deftest test-line-comment-p--c ()
 
@@ -98,10 +98,10 @@ print(\"Hello, world!\")"
     "// comment
 /* also comment */"
     (goto-line 1)
-    (should (est--line-comment-p))
+    (should (ert-font-lock--line-comment-p))
 
     (goto-line 2)
-    (should (est--line-comment-p))))
+    (should (ert-font-lock--line-comment-p))))
 
 (ert-deftest test-parse-comments--single-line-error ()
   (let* ((str "// ^ face.face1")
@@ -110,7 +110,7 @@ print(\"Hello, world!\")"
       (insert str)
       (javascript-mode)
 
-      (should-error (est--parse-test-comments)))))
+      (should-error (ert-font-lock--parse-test-comments)))))
 
 (ert-deftest test-parse-comments--single-line-single-caret ()
   (let* ((str "
@@ -122,7 +122,7 @@ first
       (insert str)
       (javascript-mode)
 
-      (setq asserts (est--parse-test-comments))
+      (setq asserts (ert-font-lock--parse-test-comments))
       (should (eql (length asserts) 1))
       (should (equal (car asserts)
                      '(:line-checked 2 :line-assert 3 :column-checked 3 :face "face.face1" :negation nil))))))
@@ -138,7 +138,7 @@ first
       (insert str)
       (javascript-mode)
 
-      (setq asserts (est--parse-test-comments))
+      (setq asserts (ert-font-lock--parse-test-comments))
       (should (eql (length asserts) 2))
       (should (equal asserts
                      '((:line-checked 2 :line-assert 3 :column-checked 3 :face "face" :negation t)
@@ -159,7 +159,7 @@ first
       (insert str)
       (javascript-mode)
 
-      (setq asserts (est--parse-test-comments))
+      (setq asserts (ert-font-lock--parse-test-comments))
       (should (eql (length asserts) 4))
       (should (equal asserts
                      '((:line-checked 2 :line-assert 3 :column-checked 3 :face "face1" :negation nil)
@@ -181,7 +181,7 @@ third
       (insert str)
       (javascript-mode)
 
-      (setq asserts (est--parse-test-comments))
+      (setq asserts (ert-font-lock--parse-test-comments))
       (should (eql (length asserts) 3))
       (should (equal asserts
                      '((:line-checked 2  :line-assert 3 :column-checked 3 :face "face1" :negation nil)
@@ -199,7 +199,7 @@ first
       (insert str)
       (javascript-mode)
 
-      (setq asserts (est--parse-test-comments))
+      (setq asserts (ert-font-lock--parse-test-comments))
       (should (eql (length asserts) 1))
       (should (equal (car asserts)
                      '(:line-checked 2 :line-assert 3 :column-checked 0 :face "face1" :negation nil))))))
@@ -217,7 +217,7 @@ first
       (insert str)
       (javascript-mode)
 
-      (setq asserts (est--parse-test-comments))
+      (setq asserts (ert-font-lock--parse-test-comments))
       (should (eql (length asserts) 3))
       (should (equal asserts
                      '((:line-checked 2 :line-assert 3 :column-checked 0 :face "face1" :negation nil)

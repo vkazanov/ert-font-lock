@@ -14,9 +14,9 @@
 
  - [X] more lang tests: php, shell, more?
 
- - [ ] example file loading helper macro?
+ - [X] package name: ert-font-lock
 
- - [ ] package name: ert-font-lock
+ - [ ] example file loading helper macro?
 
  - [ ] package (autoloads, commentary, README, etc)
 

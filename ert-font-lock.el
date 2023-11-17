@@ -1,10 +1,10 @@
-;;; est.el --- Emacs Lisp Syntax Testing   -*- coding: utf-8; lexical-binding: t -*-
+;;; ert-font-lock.el --- ERT Font Lock   -*- coding: utf-8; lexical-binding: t -*-
 
 ;; Copyright (C) 2023 Vladimir Kazanov
 
 ;; Author: Vladimir Kazanov
 ;; Keywords: lisp, test
-;; URL: https://github.com/vkazanov/est
+;; URL: https://github.com/vkazanov/ert-font-lock
 ;; Version: 0.1.0
 ;; Package-Requires: ((emacs "29.1"))
 
@@ -26,9 +26,9 @@
 
 ;;; Commentary:
 ;;
-;; Emacs Lisp Syntax Testing is an extension to standard Emacs Lisp
-;; Regresstion Test tool providing a convenient way to check syntax
-;; highlighting provided by font-lock.
+;; ERT Font Lock is an extension to standard Emacs Lisp Regression
+;; Test tool providing a convenient way to check syntax highlighting
+;; provided by font-lock.
 ;;
 ;; TODO: expand on usage examples
 
@@ -39,30 +39,30 @@
 (require 'newcomment)
 
 
-(defun est--validate-major-mode (mode)
+(defun ert-font-lock--validate-major-mode (mode)
   "Validate if MODE is a valid major mode."
   (unless (functionp mode)
     (error "Invalid major mode: %s. Please specify a valid major mode for
 syntax highlighting tests" mode)))
 
 
-(defmacro est-deftest (name mode test-string &optional docstring)
+(defmacro ert-font-lock-deftest (name mode test-string &optional docstring)
   "Define an ERT test NAME for font-lock syntax highlighting.
 TEST-STRING is the string to test, MODE is the major mode, and
 DOCSTRING is a docstring to use for the test."
   (declare (indent 2) (debug t) (doc-string 4))
   `(ert-deftest ,name ()
      ,@(when docstring `(,docstring))
-     (est--validate-major-mode ',mode)
+     (ert-font-lock--validate-major-mode ',mode)
      (with-temp-buffer
        (insert ,test-string)
        (funcall ',mode)
        (font-lock-ensure)
-       (let ((tests (est--parse-test-comments)))
-         (est--check-syntax-highlighting tests)))))
+       (let ((tests (ert-font-lock--parse-test-comments)))
+         (ert-font-lock--check-syntax-highlighting tests)))))
 
 
-(defun est--line-comment-p ()
+(defun ert-font-lock--line-comment-p ()
   "Return t if the current line is a comment-only line."
   (save-excursion
     (beginning-of-line)
@@ -79,18 +79,18 @@ DOCSTRING is a docstring to use for the test."
        (and (derived-mode-p 'c-mode 'c++-mode 'java-mode)
             (looking-at-p "//"))))))
 
-(defun est--goto-first-char ()
+(defun ert-font-lock--goto-first-char ()
   "Move the point to the first character."
   (beginning-of-line)
   (skip-syntax-forward " "))
 
-(defun est--get-first-char-column ()
+(defun ert-font-lock--get-first-char-column ()
   "Get the position of the first non-empty char in the current line."
   (save-excursion
-    (est--goto-first-char)
+    (ert-font-lock--goto-first-char)
     (- (point) (line-beginning-position))))
 
-(defun est--parse-test-comments ()
+(defun ert-font-lock--parse-test-comments ()
   "Read test assertions from comments in the current buffer."
   (let ((tests '())
         (curline 1)
@@ -104,7 +104,7 @@ DOCSTRING is a docstring to use for the test."
       (catch 'continue
 
         ;; Not a comment? remember line number
-        (unless (est--line-comment-p)
+        (unless (ert-font-lock--line-comment-p)
           (setq linetocheck curline)
           (throw 'continue t))
 
@@ -120,7 +120,7 @@ DOCSTRING is a docstring to use for the test."
                  ;; caret column
                  (column-checked (if (equal (match-string-no-properties 1) "^")
                                      (- (match-beginning 1) (line-beginning-position))
-                                   (est--get-first-char-column)))
+                                   (ert-font-lock--get-first-char-column)))
                  ;; negate the face?
                  (negation (string-equal (match-string-no-properties 2) "!"))
                  ;; the face that is supposed to be in the position specified
@@ -138,7 +138,7 @@ DOCSTRING is a docstring to use for the test."
 
     (reverse tests)))
 
-(defun est--point-at-line-and-column (line column)
+(defun ert-font-lock--point-at-line-and-column (line column)
   "Get the buffer position for LINE and COLUMN."
   (save-excursion
     (goto-char (point-min))
@@ -146,14 +146,14 @@ DOCSTRING is a docstring to use for the test."
     (move-to-column column)
     (point)))
 
-(defun est--get-line (line-number)
+(defun ert-font-lock--get-line (line-number)
   "Return the content of the line specified by LINE-NUMBER."
   (save-excursion
     (goto-char (point-min))
     (forward-line (1- line-number))
     (buffer-substring-no-properties (line-beginning-position) (line-end-position))))
 
-(defun est--check-syntax-highlighting (tests)
+(defun ert-font-lock--check-syntax-highlighting (tests)
   "Check if the current buffer is fontified correctly using TESTS.
 
 The function is meant to be run from within an ERT test."
@@ -164,9 +164,9 @@ The function is meant to be run from within an ERT test."
            (expected-face (intern (plist-get test :face)))
            (negation (plist-get test :negation))
 
-           (actual-face (get-text-property (est--point-at-line-and-column line-checked column-checked) 'face))
-           (line-str (est--get-line line-checked))
-           (line-assert-str (est--get-line line-assert)))
+           (actual-face (get-text-property (ert-font-lock--point-at-line-and-column line-checked column-checked) 'face))
+           (line-str (ert-font-lock--get-line line-checked))
+           (line-assert-str (ert-font-lock--get-line line-assert)))
 
       (when (not (eq actual-face expected-face))
         (ert-fail
@@ -188,13 +188,13 @@ The function is meant to be run from within an ERT test."
 MODE - a major mode to use.
 
 The function is meant to be run from within an ERT test."
-  (est--validate-major-mode mode)
+  (ert-font-lock--validate-major-mode mode)
   (with-temp-buffer
     (insert test-string)
     (funcall mode)
     (font-lock-ensure)
 
-    (est--check-syntax-highlighting (est--parse-test-comments)))
+    (ert-font-lock--check-syntax-highlighting (ert-font-lock--parse-test-comments)))
 
   (ert-pass))
 
@@ -204,17 +204,17 @@ The function is meant to be run from within an ERT test."
 MODE - a major mode to use.
 
 The function is meant to be run from within an ERT test."
-  (est--validate-major-mode mode)
+  (ert-font-lock--validate-major-mode mode)
   (with-temp-buffer
     (insert-file-contents filename)
     (funcall mode)
     (font-lock-ensure)
 
-    (est--check-syntax-highlighting (est--parse-test-comments)))
+    (ert-font-lock--check-syntax-highlighting (est--parse-test-comments)))
 
   (ert-pass))
 
 
-(provide 'est)
+(provide 'ert-font-lock)
 
-;;; est.el ends here
+;;; ert-font-lock.el ends here

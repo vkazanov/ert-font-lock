@@ -1,4 +1,4 @@
-* Emacs Lisp Syntax Test
+* ERT Font Lock
 
-Emacs Lisp Syntax Test, or EST, is an extension to ERT that supports inline font-locking
-unit testing using syntax inspired by Tree-sitter tests.
+ERT Font Lock, or ert-font-lock, is an extension to ERT that supports inline font-locking
+unit testing using syntax inspired by Tree-sitter test system.

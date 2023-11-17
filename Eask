@@ -1,12 +1,12 @@
-(package "est"
+(package "ert-font-lock"
          "0.1.0"
-         "Emacs Lisp Syntax Testing")
+         "ERT Font Lock")
 
 (license "GPLv3")
-(website-url "https://github.com/vkazanov/est")
+(website-url "https://github.com/vkazanov/ert-font-lock")
 (keywords "lisp" "test")
 
-(package-file "est.el")
+(package-file "ert-font-lock.el")
 
 (script "test" "echo \"Error: no test specified\" && exit 1")
 
