@@ -11,8 +11,11 @@
 
    #+end_src
 
- - [ ] fix error reporting messages (strings are not properly displayed, also show both the
+ - [X] fix error reporting messages (strings are not properly displayed, also show both the
    assertion string in the string checked)
+
+ - [ ] example file loading helper macro?
+
 
  - [ ] package name: ert-font-lock
 
