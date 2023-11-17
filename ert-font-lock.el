@@ -125,7 +125,7 @@ the test."
                                  (line-end-position) t)
 
           (unless (> linetocheck -1)
-            (error "Invalid test comment syntax at line %d. Expected a line to test before the comment line." curline))
+            (error "Invalid test comment syntax at line %d. Expected a line to test before the comment line" curline))
 
           ;; construct a test
           (let* (;; either comment start char column (for arrows) or
@@ -166,7 +166,8 @@ the test."
     (buffer-substring-no-properties (line-beginning-position) (line-end-position))))
 
 (defun ert-font-lock--check-faces (tests)
-  "Check if the current buffer is fontified correctly using TESTS.
+  "Check if the current buffer is fontified correctly.
+TESTS - tests to run.
 
 The function is meant to be run from within an ERT test."
   (dolist (test tests)
@@ -195,9 +196,7 @@ The function is meant to be run from within an ERT test."
                :assert line-assert-str))))))
 
 (defun ert-font-lock-test-string (test-string mode)
-  "ERT test for syntax highlighting of TEST-STRING.
-
-MODE - a major mode to use.
+  "Check font faces in TEST-STRING set by MODE.
 
 The function is meant to be run from within an ERT test."
   (ert-font-lock--validate-major-mode mode)
@@ -211,9 +210,7 @@ The function is meant to be run from within an ERT test."
   (ert-pass))
 
 (defun ert-font-lock-test-file (filename mode)
-  "ERT test for syntax highlighting of FILENAME.
-
-MODE - a major mode to use.
+  "Check font faces in FILENAME set by MODE.
 
 The function is meant to be run from within an ERT test."
   (ert-font-lock--validate-major-mode mode)
