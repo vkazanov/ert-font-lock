@@ -89,7 +89,7 @@ first
       (setq asserts (est--parse-test-comments))
       (should (eql (length asserts) 1))
       (should (equal (car asserts)
-                     '(:line-checked 2 :column-checked 3 :face "face.face1" :negation nil))))))
+                     '(:line-checked 2 :line-assert 3 :column-checked 3 :face "face.face1" :negation nil))))))
 
 (ert-deftest test-parse-comments--caret-negation ()
   (let* ((str "
@@ -105,8 +105,8 @@ first
       (setq asserts (est--parse-test-comments))
       (should (eql (length asserts) 2))
       (should (equal asserts
-                     '((:line-checked 2 :column-checked 3 :face "face" :negation t)
-                       (:line-checked 2 :column-checked 3 :face "face" :negation nil)))))))
+                     '((:line-checked 2 :line-assert 3 :column-checked 3 :face "face" :negation t)
+                       (:line-checked 2 :line-assert 4 :column-checked 3 :face "face" :negation nil)))))))
 
 
 (ert-deftest test-parse-comments--single-line-multiple-carets ()
@@ -126,10 +126,10 @@ first
       (setq asserts (est--parse-test-comments))
       (should (eql (length asserts) 4))
       (should (equal asserts
-                     '((:line-checked 2 :column-checked 3 :face "face1" :negation nil)
-                       (:line-checked 2 :column-checked 7 :face "face.face2" :negation nil)
-                       (:line-checked 2 :column-checked 7 :face "face-face.face3" :negation nil)
-                       (:line-checked 2 :column-checked 7 :face "face_face.face4" :negation nil)))))))
+                     '((:line-checked 2 :line-assert 3 :column-checked 3 :face "face1" :negation nil)
+                       (:line-checked 2 :line-assert 4 :column-checked 7 :face "face.face2" :negation nil)
+                       (:line-checked 2 :line-assert 5 :column-checked 7 :face "face-face.face3" :negation nil)
+                       (:line-checked 2 :line-assert 6 :column-checked 7 :face "face_face.face4" :negation nil)))))))
 
 (ert-deftest test-parse-comments--multiple-line-multiple-carets ()
   (let* ((str "
@@ -148,9 +148,9 @@ third
       (setq asserts (est--parse-test-comments))
       (should (eql (length asserts) 3))
       (should (equal asserts
-                     '((:line-checked 2 :column-checked 3 :face "face1" :negation nil)
-                       (:line-checked 4 :column-checked 3 :face "face2" :negation nil)
-                       (:line-checked 4 :column-checked 5 :face "face3" :negation nil)))))))
+                     '((:line-checked 2  :line-assert 3 :column-checked 3 :face "face1" :negation nil)
+                       (:line-checked 4  :line-assert 5 :column-checked 3 :face "face2" :negation nil)
+                       (:line-checked 4  :line-assert 6 :column-checked 5 :face "face3" :negation nil)))))))
 
 
 (ert-deftest test-parse-comments--arrow-single-line-single ()
@@ -166,7 +166,7 @@ first
       (setq asserts (est--parse-test-comments))
       (should (eql (length asserts) 1))
       (should (equal (car asserts)
-                     '(:line-checked 2 :column-checked 0 :face "face1" :negation nil))))))
+                     '(:line-checked 2 :line-assert 3 :column-checked 0 :face "face1" :negation nil))))))
 
 
 (ert-deftest test-parse-comments-arrow-multiple-line-single ()
@@ -184,6 +184,6 @@ first
       (setq asserts (est--parse-test-comments))
       (should (eql (length asserts) 3))
       (should (equal asserts
-                     '((:line-checked 2 :column-checked 0 :face "face1" :negation nil)
-                       (:line-checked 2 :column-checked 2 :face "face2" :negation nil)
-                       (:line-checked 2 :column-checked 4 :face "face3" :negation nil)))))))
+                     '((:line-checked 2 :line-assert 3 :column-checked 0 :face "face1" :negation nil)
+                       (:line-checked 2 :line-assert 4 :column-checked 2 :face "face2" :negation nil)
+                       (:line-checked 2 :line-assert 5 :column-checked 4 :face "face3" :negation nil)))))))

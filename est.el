@@ -118,6 +118,7 @@ DOCSTRING is a docstring to use for the test."
                  (face (match-string-no-properties 3)))
 
             (push (list :line-checked linetocheck
+                        :line-assert curline
                         :column-checked column-checked
                         :face face
                         :negation negation)
@@ -149,24 +150,28 @@ DOCSTRING is a docstring to use for the test."
 The function is meant to be run from within an ERT test."
   (dolist (test tests)
     (let* ((line-checked (plist-get test :line-checked))
+           (line-assert (plist-get test :line-assert))
            (column-checked (plist-get test :column-checked))
            (expected-face (intern (plist-get test :face)))
            (negation (plist-get test :negation))
 
            (actual-face (get-text-property (est--point-at-line-and-column line-checked column-checked) 'face))
-           (line-str (est--get-line line-checked)))
+           (line-str (est--get-line line-checked))
+           (line-assert-str (est--get-line line-assert)))
 
       (when (not (eq actual-face expected-face))
         (ert-fail
-         (format "Expected face %s, got %s on line %d column %d: \n%s"
-                 expected-face actual-face line-checked column-checked
-                 line-str)))
+         (list (format "Expected face %s, got %s on line %d column %d"
+                       expected-face actual-face line-checked column-checked)
+               :line line-str
+               :assert line-assert-str)))
 
       (when (and negation (eq actual-face expected-face))
         (ert-fail
-         (format "Did not expect face %s face on line %d, column %d: \n%s"
-                 actual-face line-checked column-checked
-                 line-str))))))
+         (list (format "Did not expect face %s face on line %d, column %d"
+                       actual-face line-checked column-checked)
+               :line line-str
+               :assert line-assert-str))))))
 
 (defun est-test-font-lock-string (test-string mode)
   "ERT test for syntax highlighting of TEST-STRING.
