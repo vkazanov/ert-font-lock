@@ -39,6 +39,20 @@
 (require 'newcomment)
 
 
+(defmacro est-deftest (name mode test-string)
+  "Define an ERT test NAME for font-lock syntax highlighting.
+TEST-STRING is the string to test, DOC is the docstring to use
+for the test, and MODE is the major mode."
+  (declare (indent 2) (debug t) )
+  `(ert-deftest ,name ()
+     (with-temp-buffer
+       (insert ,test-string)
+       (funcall ',mode)
+       (font-lock-ensure)
+       (let ((tests (est--parse-test-comments)))
+         (est--check-syntax-highlighting tests)))))
+
+
 (defun est--line-is-comment-p ()
   "Return t if the current line is a comment-only line."
   (save-excursion
@@ -96,13 +110,13 @@
                  (line linetocheck)
                  ;; either comment start char column (for arrows) or
                  ;; caret column
-                 (column (if (equal (match-string 1) "^")
+                 (column (if (equal (match-string-no-properties 1) "^")
                              (- (match-beginning 1) (line-beginning-position))
                            (est--get-first-char-column)))
                  ;; negate the face?
-                 (negation (string-equal (match-string 2) "!"))
+                 (negation (string-equal (match-string-no-properties 2) "!"))
                  ;; the face that is supposed to be in the position specified
-                 (face (match-string 3)))
+                 (face (match-string-no-properties 3)))
 
             (push (list :line line :column column :face face :negation negation) tests))))
 
@@ -142,7 +156,7 @@ The function is meant to be run from within an ERT test."
       (when (not (eq actual-face expected-face))
         (ert-fail
          (format "Expected face %s, got %s on line %d column %d: \n%s"
-                 actual-face expected-face line column
+                 expected-face actual-face line column
                  line-str)))
 
       (when (and negation (eq actual-face expected-face))

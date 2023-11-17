@@ -3,9 +3,17 @@
 
  - [X] loading from example files (that have their mode specified)
 
- - [ ] fix error reporting messages
+ - [X] python, c, java, javascript...
 
- - [ ] more languages for test comment parsing
+   more languages for test comment parsing
+
+ - [X] test definition macro wrapper
+
+   #+end_src
+
+ - [ ] fix error reporting messages (strings are not properly displayed)
+
+ - [ ] package name: ert-font-lock
 
  - [ ] package (autoloads, commentary, README, etc)
 
