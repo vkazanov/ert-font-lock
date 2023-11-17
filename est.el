@@ -107,19 +107,21 @@ DOCSTRING is a docstring to use for the test."
             (error "Trying to specify a test without a line to test"))
 
           ;; construct a test
-          (let* (;; the line number to be checked
-                 (line linetocheck)
-                 ;; either comment start char column (for arrows) or
+          (let* (;; either comment start char column (for arrows) or
                  ;; caret column
-                 (column (if (equal (match-string-no-properties 1) "^")
-                             (- (match-beginning 1) (line-beginning-position))
-                           (est--get-first-char-column)))
+                 (column-checked (if (equal (match-string-no-properties 1) "^")
+                                     (- (match-beginning 1) (line-beginning-position))
+                                   (est--get-first-char-column)))
                  ;; negate the face?
                  (negation (string-equal (match-string-no-properties 2) "!"))
                  ;; the face that is supposed to be in the position specified
                  (face (match-string-no-properties 3)))
 
-            (push (list :line line :column column :face face :negation negation) tests))))
+            (push (list :line-checked linetocheck
+                        :column-checked column-checked
+                        :face face
+                        :negation negation)
+                  tests))))
 
       (cl-incf curline)
       (forward-line 1))
@@ -146,24 +148,24 @@ DOCSTRING is a docstring to use for the test."
 
 The function is meant to be run from within an ERT test."
   (dolist (test tests)
-    (let* ((line (plist-get test :line))
-           (column (plist-get test :column))
+    (let* ((line-checked (plist-get test :line-checked))
+           (column-checked (plist-get test :column-checked))
            (expected-face (intern (plist-get test :face)))
            (negation (plist-get test :negation))
 
-           (actual-face (get-text-property (est--point-at-line-and-column line column) 'face))
-           (line-str (est--get-line line)))
+           (actual-face (get-text-property (est--point-at-line-and-column line-checked column-checked) 'face))
+           (line-str (est--get-line line-checked)))
 
       (when (not (eq actual-face expected-face))
         (ert-fail
          (format "Expected face %s, got %s on line %d column %d: \n%s"
-                 expected-face actual-face line column
+                 expected-face actual-face line-checked column-checked
                  line-str)))
 
       (when (and negation (eq actual-face expected-face))
         (ert-fail
          (format "Did not expect face %s face on line %d, column %d: \n%s"
-                 actual-face line column
+                 actual-face line-checked column-checked
                  line-str))))))
 
 (defun est-test-font-lock-string (test-string mode)

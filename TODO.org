@@ -11,7 +11,8 @@
 
    #+end_src
 
- - [ ] fix error reporting messages (strings are not properly displayed)
+ - [ ] fix error reporting messages (strings are not properly displayed, also show both the
+   assertion string in the string checked)
 
  - [ ] package name: ert-font-lock
 
