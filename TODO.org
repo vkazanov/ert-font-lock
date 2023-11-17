@@ -16,7 +16,7 @@
 
  - [X] package name: ert-font-lock
 
- - [ ] example file loading helper macro?
+ - [X] example file loading helper macro
 
  - [ ] package (autoloads, commentary, README, etc)
 

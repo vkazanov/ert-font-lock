@@ -62,6 +62,18 @@ DOCSTRING is a docstring to use for the test."
          (ert-font-lock--check-syntax-highlighting tests)))))
 
 
+(defmacro ert-font-lock-deftest-file (name mode file &optional docstring)
+  "Define an ERT test NAME for font-lock syntax highlighting.
+FILE is the path to a file in ert resource dir with test cases,
+MODE is the major mode, and DOCSTRING is a docstring to use for
+the test."
+  (declare (indent 2) (debug t) (doc-string 4))
+  `(ert-deftest ,name ()
+     ,@(when docstring `(,docstring))
+     (ert-font-lock--validate-major-mode ',mode)
+     (ert-font-lock-test-font-lock-file (ert-resource-file ,file) ',mode)))
+
+
 (defun ert-font-lock--line-comment-p ()
   "Return t if the current line is a comment-only line."
   (save-excursion
