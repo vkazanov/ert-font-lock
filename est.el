@@ -39,12 +39,13 @@
 (require 'newcomment)
 
 
-(defmacro est-deftest (name mode test-string)
+(defmacro est-deftest (name mode test-string &optional docstring)
   "Define an ERT test NAME for font-lock syntax highlighting.
-TEST-STRING is the string to test, DOC is the docstring to use
-for the test, and MODE is the major mode."
-  (declare (indent 2) (debug t) )
+TEST-STRING is the string to test, MODE is the major mode, and
+DOCSTRING is a docstring to use for the test."
+  (declare (indent 2) (debug t) (doc-string 4))
   `(ert-deftest ,name ()
+     ,@(when docstring `(,docstring))
      (with-temp-buffer
        (insert ,test-string)
        (funcall ',mode)
