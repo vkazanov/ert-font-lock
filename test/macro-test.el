@@ -16,5 +16,5 @@
 ;; ^ font-lock-keyword-face"
   "An EST test with a docstring.")
 
-(ert-font-lock-deftest test-macro-test--file javascript-mode
+(ert-font-lock-deftest-file test-macro-test--file javascript-mode
   "correct.js")

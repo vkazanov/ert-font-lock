@@ -27,8 +27,8 @@
 ;;; Commentary:
 ;;
 ;; ERT Font Lock is an extension to standard Emacs Lisp Regression
-;; Test tool providing a convenient way to check syntax highlighting
-;; provided by font-lock.
+;; Test library providing a convenient way to check syntax
+;; highlighting provided by font-lock.
 ;;
 ;; TODO: expand on usage examples
 
@@ -58,8 +58,8 @@ DOCSTRING is a docstring to use for the test."
        (insert ,test-string)
        (funcall ',mode)
        (font-lock-ensure)
-       (let ((tests (ert-font-lock--parse-test-comments)))
-         (ert-font-lock--check-syntax-highlighting tests)))))
+       (let ((tests (ert-font-lock--parse-comments)))
+         (ert-font-lock--check-faces tests)))))
 
 
 (defmacro ert-font-lock-deftest-file (name mode file &optional docstring)
@@ -71,7 +71,7 @@ the test."
   `(ert-deftest ,name ()
      ,@(when docstring `(,docstring))
      (ert-font-lock--validate-major-mode ',mode)
-     (ert-font-lock-test-font-lock-file (ert-resource-file ,file) ',mode)))
+     (ert-font-lock-test-file (ert-resource-file ,file) ',mode)))
 
 
 (defun ert-font-lock--line-comment-p ()
@@ -102,7 +102,7 @@ the test."
     (ert-font-lock--goto-first-char)
     (- (point) (line-beginning-position))))
 
-(defun ert-font-lock--parse-test-comments ()
+(defun ert-font-lock--parse-comments ()
   "Read test assertions from comments in the current buffer."
   (let ((tests '())
         (curline 1)
@@ -165,7 +165,7 @@ the test."
     (forward-line (1- line-number))
     (buffer-substring-no-properties (line-beginning-position) (line-end-position))))
 
-(defun ert-font-lock--check-syntax-highlighting (tests)
+(defun ert-font-lock--check-faces (tests)
   "Check if the current buffer is fontified correctly using TESTS.
 
 The function is meant to be run from within an ERT test."
@@ -194,7 +194,7 @@ The function is meant to be run from within an ERT test."
                :line line-str
                :assert line-assert-str))))))
 
-(defun est-test-font-lock-string (test-string mode)
+(defun ert-font-lock-test-string (test-string mode)
   "ERT test for syntax highlighting of TEST-STRING.
 
 MODE - a major mode to use.
@@ -206,11 +206,11 @@ The function is meant to be run from within an ERT test."
     (funcall mode)
     (font-lock-ensure)
 
-    (ert-font-lock--check-syntax-highlighting (ert-font-lock--parse-test-comments)))
+    (ert-font-lock--check-faces (ert-font-lock--parse-comments)))
 
   (ert-pass))
 
-(defun est-test-font-lock-file (filename mode)
+(defun ert-font-lock-test-file (filename mode)
   "ERT test for syntax highlighting of FILENAME.
 
 MODE - a major mode to use.
@@ -222,7 +222,7 @@ The function is meant to be run from within an ERT test."
     (funcall mode)
     (font-lock-ensure)
 
-    (ert-font-lock--check-syntax-highlighting (est--parse-test-comments)))
+    (ert-font-lock--check-faces (ert-font-lock--parse-comments)))
 
   (ert-pass))
 

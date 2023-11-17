@@ -110,7 +110,7 @@ print(\"Hello, world!\")"
       (insert str)
       (javascript-mode)
 
-      (should-error (ert-font-lock--parse-test-comments)))))
+      (should-error (ert-font-lock--parse-comments)))))
 
 (ert-deftest test-parse-comments--single-line-single-caret ()
   (let* ((str "
@@ -122,7 +122,7 @@ first
       (insert str)
       (javascript-mode)
 
-      (setq asserts (ert-font-lock--parse-test-comments))
+      (setq asserts (ert-font-lock--parse-comments))
       (should (eql (length asserts) 1))
       (should (equal (car asserts)
                      '(:line-checked 2 :line-assert 3 :column-checked 3 :face "face.face1" :negation nil))))))
@@ -138,7 +138,7 @@ first
       (insert str)
       (javascript-mode)
 
-      (setq asserts (ert-font-lock--parse-test-comments))
+      (setq asserts (ert-font-lock--parse-comments))
       (should (eql (length asserts) 2))
       (should (equal asserts
                      '((:line-checked 2 :line-assert 3 :column-checked 3 :face "face" :negation t)
@@ -159,7 +159,7 @@ first
       (insert str)
       (javascript-mode)
 
-      (setq asserts (ert-font-lock--parse-test-comments))
+      (setq asserts (ert-font-lock--parse-comments))
       (should (eql (length asserts) 4))
       (should (equal asserts
                      '((:line-checked 2 :line-assert 3 :column-checked 3 :face "face1" :negation nil)
@@ -181,7 +181,7 @@ third
       (insert str)
       (javascript-mode)
 
-      (setq asserts (ert-font-lock--parse-test-comments))
+      (setq asserts (ert-font-lock--parse-comments))
       (should (eql (length asserts) 3))
       (should (equal asserts
                      '((:line-checked 2  :line-assert 3 :column-checked 3 :face "face1" :negation nil)
@@ -199,7 +199,7 @@ first
       (insert str)
       (javascript-mode)
 
-      (setq asserts (ert-font-lock--parse-test-comments))
+      (setq asserts (ert-font-lock--parse-comments))
       (should (eql (length asserts) 1))
       (should (equal (car asserts)
                      '(:line-checked 2 :line-assert 3 :column-checked 0 :face "face1" :negation nil))))))
@@ -217,7 +217,7 @@ first
       (insert str)
       (javascript-mode)
 
-      (setq asserts (ert-font-lock--parse-test-comments))
+      (setq asserts (ert-font-lock--parse-comments))
       (should (eql (length asserts) 3))
       (should (equal asserts
                      '((:line-checked 2 :line-assert 3 :column-checked 0 :face "face1" :negation nil)

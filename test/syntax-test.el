@@ -19,8 +19,8 @@ var abc = function(d) {
       (javascript-mode)
       (font-lock-ensure)
 
-      (ert-font-lock--check-syntax-highlighting
-       (ert-font-lock--parse-test-comments)))))
+      (ert-font-lock--check-faces
+       (ert-font-lock--parse-comments)))))
 
 (ert-deftest test-syntax-highlight-inline--caret-wrong-face ()
   (let* ((str "
@@ -33,13 +33,20 @@ var abc = function(d) {
       (javascript-mode)
       (font-lock-ensure)
 
-      (should-error (ert-font-lock--check-syntax-highlighting (ert-font-lock--parse-test-comments))))))
+      (should-error (ert-font-lock--check-faces
+                     (ert-font-lock--parse-comments))))))
 
 (ert-deftest test-syntax-highlight-file--correct ()
-  (ert-font-lock-test-font-lock-file (ert-resource-file "correct.js") 'javascript-mode))
+  (ert-font-lock-test-file
+   (ert-resource-file "correct.js")
+   'javascript-mode))
 
 (ert-deftest test-syntax-highlight-file--invalid-mode ()
-  (should-error (ert-font-lock-test-font-lock-file (ert-resource-file "correct.js") 'non-existing-mode)))
+  (should-error (ert-font-lock-test-file
+                 (ert-resource-file "correct.js")
+                 'non-existing-mode)))
 
 (ert-deftest test-syntax-highlight-file--wrong ()
-  (should-error (ert-font-lock-test-font-lock-file (ert-resource-file "broken.js")  'javascript-mode)))
+  (should-error (ert-font-lock-test-file
+                 (ert-resource-file "broken.js")
+                 'javascript-mode)))
