@@ -15,4 +15,5 @@
 (depends-on "emacs" "29.1")
 (development
  (depends-on "ert-runner")
- (depends-on "elisp-lint"))
+ (depends-on "elisp-lint")
+ (depends-on "php-mode"))

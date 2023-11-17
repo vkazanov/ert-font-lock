@@ -54,7 +54,7 @@ DOCSTRING is a docstring to use for the test."
          (est--check-syntax-highlighting tests)))))
 
 
-(defun est--line-is-comment-p ()
+(defun est--line-comment-p ()
   "Return t if the current line is a comment-only line."
   (save-excursion
     (beginning-of-line)
@@ -66,6 +66,7 @@ DOCSTRING is a docstring to use for the test."
        (looking-at "\\s<")
        ;; a bit smarter
        (and comment-start (looking-at (regexp-quote comment-start)))
+       (and comment-start-skip (looking-at comment-start-skip))
        ;; hardcoded
        (and (derived-mode-p 'c-mode 'c++-mode 'java-mode)
             (looking-at-p "//"))))))
@@ -95,7 +96,7 @@ DOCSTRING is a docstring to use for the test."
       (catch 'continue
 
         ;; Not a comment? remember line number
-        (unless (est--line-is-comment-p)
+        (unless (est--line-comment-p)
           (setq linetocheck curline)
           (throw 'continue t))
 

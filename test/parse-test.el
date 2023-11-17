@@ -4,26 +4,53 @@
 
 (require 'est)
 
-(ert-deftest test-line-is-comment-p--fundamental ()
+(ert-deftest test-line-comment-p--fundamental ()
 
   (with-temp-buffer-str-mode fundamental-mode
     "// comment\n"
-    (should-not (est--line-is-comment-p))))
+    (should-not (est--line-comment-p))))
 
-(ert-deftest test-line-is-comment-p--emacs-lisp ()
+(ert-deftest test-line-comment-p--emacs-lisp ()
 
   (with-temp-buffer-str-mode emacs-lisp-mode
     "not comment
 ;; comment
 "
     (goto-line 1)
-    (should-not (est--line-is-comment-p))
+    (should-not (est--line-comment-p))
     (goto-line 2)
-    (should (est--line-is-comment-p))
+    (should (est--line-comment-p))
     (goto-line 3)
-    (should-not (est--line-is-comment-p))))
+    (should-not (est--line-comment-p))))
 
-(ert-deftest test-line-is-comment-p--javascript ()
+(ert-deftest test-line-comment-p--shell-script ()
+
+  (with-temp-buffer-str-mode shell-script-mode
+    "echo Not a comment
+# comment
+"
+    (goto-line 1)
+    (should-not (est--line-comment-p))
+    (goto-line 2)
+    (should (est--line-comment-p))))
+
+(ert-deftest test-line-comment-p--php ()
+  (skip-unless (featurep 'php-mode))
+
+  (with-temp-buffer-str-mode php-mode
+    "echo 'Not a comment'
+// comment
+/* comment */
+"
+    (goto-line 1)
+    (should-not (est--line-comment-p))
+    (goto-line 2)
+    (should (est--line-comment-p))
+    (goto-line 3)
+    (should (est--line-comment-p))))
+
+
+(ert-deftest test-line-comment-p--javascript ()
   (with-temp-buffer-str-mode javascript-mode
     "// comment
 
@@ -32,21 +59,21 @@
 var abc = function(d) {};
 "
     (goto-line 1)
-    (should (est--line-is-comment-p))
+    (should (est--line-comment-p))
 
     (goto-line 2)
-    (should-not (est--line-is-comment-p))
+    (should-not (est--line-comment-p))
 
     (goto-line 3)
-    (should (est--line-is-comment-p))
+    (should (est--line-comment-p))
 
     (goto-line 4)
-    (should-not (est--line-is-comment-p))
+    (should-not (est--line-comment-p))
 
     (goto-line 5)
-    (should-not (est--line-is-comment-p))))
+    (should-not (est--line-comment-p))))
 
-(ert-deftest test-line-is-comment-p--python ()
+(ert-deftest test-line-comment-p--python ()
 
   (with-temp-buffer-str-mode python-mode
     "# comment
@@ -54,27 +81,27 @@ var abc = function(d) {};
    # comment
 print(\"Hello, world!\")"
     (goto-line 1)
-    (should (est--line-is-comment-p))
+    (should (est--line-comment-p))
 
     (goto-line 2)
-    (should-not (est--line-is-comment-p))
+    (should-not (est--line-comment-p))
 
     (goto-line 3)
-    (should (est--line-is-comment-p))
+    (should (est--line-comment-p))
 
     (goto-line 4)
-    (should-not (est--line-is-comment-p))))
+    (should-not (est--line-comment-p))))
 
-(ert-deftest test-line-is-comment-p--c ()
+(ert-deftest test-line-comment-p--c ()
 
   (with-temp-buffer-str-mode c-mode
     "// comment
 /* also comment */"
     (goto-line 1)
-    (should (est--line-is-comment-p))
+    (should (est--line-comment-p))
 
     (goto-line 2)
-    (should (est--line-is-comment-p))))
+    (should (est--line-comment-p))))
 
 (ert-deftest test-parse-comments--single-line-single-caret ()
   (let* ((str "
