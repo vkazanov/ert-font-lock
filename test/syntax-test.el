@@ -5,7 +5,7 @@
 
 (require 'est)
 
-(ert-deftest test-syntax-highlight--caret-multiple-faces ()
+(ert-deftest test-syntax-highlight-inline--caret-multiple-faces ()
   (let ((str "
 var abc = function(d) {
 //   ^ font-lock-variable-name-face
@@ -22,7 +22,7 @@ var abc = function(d) {
       (est--check-syntax-highlighting
        (est--parse-test-comments)))))
 
-(ert-deftest test-syntax-highlight--caret-wrong-face ()
+(ert-deftest test-syntax-highlight-inline--caret-wrong-face ()
   (let* ((str "
 var abc = function(d) {
 //   ^ not-a-face
@@ -35,8 +35,11 @@ var abc = function(d) {
 
       (should-error (est--check-syntax-highlighting (est--parse-test-comments))))))
 
-(ert-deftest test-syntax-highlight--correct ()
+(ert-deftest test-syntax-highlight-file--correct ()
   (est-test-font-lock-file (ert-resource-file "correct.js") 'javascript-mode))
 
-(ert-deftest test-syntax-highlight--wrong ()
+(ert-deftest test-syntax-highlight-file--invalid-mode ()
+  (should-error (est-test-font-lock-file (ert-resource-file "correct.js") 'non-existing-mode)))
+
+(ert-deftest test-syntax-highlight-file--wrong ()
   (should-error (est-test-font-lock-file (ert-resource-file "broken.js")  'javascript-mode)))

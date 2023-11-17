@@ -43,7 +43,7 @@
   "Validate if MODE is a valid major mode."
   (unless (functionp mode)
     (error "Invalid major mode: %s. Please specify a valid major mode for
-syntax highlighting tests." mode)))
+syntax highlighting tests" mode)))
 
 
 (defmacro est-deftest (name mode test-string &optional docstring)
@@ -188,6 +188,7 @@ The function is meant to be run from within an ERT test."
 MODE - a major mode to use.
 
 The function is meant to be run from within an ERT test."
+  (est--validate-major-mode mode)
   (with-temp-buffer
     (insert test-string)
     (funcall mode)
@@ -203,6 +204,7 @@ The function is meant to be run from within an ERT test."
 MODE - a major mode to use.
 
 The function is meant to be run from within an ERT test."
+  (est--validate-major-mode mode)
   (with-temp-buffer
     (insert-file-contents filename)
     (funcall mode)
