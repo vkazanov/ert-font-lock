@@ -9,19 +9,18 @@
 
  - [X] test definition macro wrapper
 
-   #+end_src
-
  - [X] fix error reporting messages (strings are not properly displayed, also show both the
    assertion string in the string checked)
 
- - [ ] example file loading helper macro?
+ - [X] more lang tests: php, shell, more?
 
+ - [ ] example file loading helper macro?
 
  - [ ] package name: ert-font-lock
 
  - [ ] package (autoloads, commentary, README, etc)
 
- - [ ] test with emacs 27.1, 28.1 (lower dependency requirements)
+ - [ ] test with emacs 26.1, 27.1, 28.1 (lower dependency requirements)
 
  - [ ] try using for internal projects
 
