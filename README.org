@@ -1,4 +1,87 @@
 * ERT Font Lock
 
-ERT Font Lock, or ert-font-lock, is an extension to ERT that supports inline font-locking
-unit testing using syntax inspired by Tree-sitter test system.
+ERT Font Lock, or ert-font-lock is an extension to standard Emacs Lisp Regression Test
+library (ERT) providing an intuitive way to check syntax highlighting provided by
+font-lock.
+
+* Syntax
+
+=ert-font-lock= is inspired by Tree-sitter's [[https://tree-sitter.github.io/tree-sitter/syntax-highlighting#unit-testing][unit testing system]]. It makes it possbile to
+specify expected faces through formatted comments as follows:
+
+#+begin_src javascript
+  var abc = function(d) {
+  // <- font-lock-keyword-face
+  //   ^ font-lock-variable-name-face
+      //        ^ font-lock-keyword-face
+      //             ^ font-lock-variable-name-face
+  };
+#+end_src
+
+Test assertions are specified by comment-only lines. Only whitespace is allowed in the
+beginning of the line.
+
+The caret in such a line (=^=) means that a column in the first non-comment line above the
+current one should have the face specified by a symbol following the caret.
+
+The arrow (=<-=) means that the first comment-starting character would be come the column
+to check.
+
+* Usage
+
+=ert-font-lock= entry points are functions =ert-font-lock-test-string= and
+`ert-font-lock-test-file' and covenience test-defining macros: =ert-font-lock-deftest= and
+=ert-font-lock-deftest-file=.
+
+* Examples
+
+Tests defined through a string:
+
+#+begin_src emacs-lisp
+  (ert-deftest test-syntax-highlight-string--correct ()
+    (ert-font-lock-test-string
+     "
+  var abc = function(d) {
+  // <- font-lock-keyword-face
+  //   ^ font-lock-variable-name-face
+      //        ^ font-lock-keyword-face
+      //             ^ font-lock-variable-name-face
+  };
+
+  "
+     'javascript-mode))
+#+end_src
+
+Tests read from a file:
+
+#+begin_src emacs-lisp
+  (ert-deftest test-syntax-highlight-file--correct ()
+    (ert-font-lock-test-file
+     (ert-resource-file "correct.js")
+     'javascript-mode))
+#+end_src
+
+Example of an ERT test file using the provided convenience macros:
+
+#+begin_src emacs-lisp
+  (require 'ert)
+  (require 'ert-font-lock)
+
+  (ert-font-lock-deftest test-macro-test--correct emacs-lisp-mode
+    "
+  (defun fun ())
+  ;; ^ font-lock-keyword-face
+  ;;      ^ font-lock-function-name-face")
+
+  (ert-font-lock-deftest test-macro-test--docstring emacs-lisp-mode
+    "
+  (defun fun ())
+  ;; ^ font-lock-keyword-face"
+    "An ERT test defined .")
+
+  (ert-font-lock-deftest-file test-macro-test--file javascript-mode
+    "correct.js")
+#+end_src
+
+The macros define usual ERT tests that can be run through =ert-run-tests-interactively=,
+or from a command line using =eacs= / =cask= and =ert-runner=.

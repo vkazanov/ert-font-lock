@@ -1,7 +1,6 @@
 ;;; Code:
 
 (require 'ert)
-
 (require 'ert-font-lock)
 
 (ert-font-lock-deftest test-macro-test--correct-highlighting emacs-lisp-mode

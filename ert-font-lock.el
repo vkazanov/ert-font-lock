@@ -27,10 +27,16 @@
 ;;; Commentary:
 ;;
 ;; ERT Font Lock is an extension to standard Emacs Lisp Regression
-;; Test library providing a convenient way to check syntax
+;; Test library (ERT) providing a convenient way to check syntax
 ;; highlighting provided by font-lock.
 ;;
-;; TODO: expand on usage examples
+;; ert-font-lock entry points are functions
+;; `ert-font-lock-test-string' and `ert-font-lock-test-file' and
+;; covenience test-defining macros: `ert-font-lock-deftest' and
+;; `ert-font-lock-deftest-file'.
+;;
+;; See ert-font-lock ERT unit tests for
+;; usage examples.
 
 ;;; Code:
 

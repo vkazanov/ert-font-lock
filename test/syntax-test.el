@@ -36,17 +36,30 @@ var abc = function(d) {
       (should-error (ert-font-lock--check-faces
                      (ert-font-lock--parse-comments))))))
 
-(ert-deftest test-syntax-highlight-file--correct ()
+(ert-deftest test-font-lock-test-string--correct ()
+  (ert-font-lock-test-string
+   "
+var abc = function(d) {
+// <- font-lock-keyword-face
+//   ^ font-lock-variable-name-face
+    //        ^ font-lock-keyword-face
+    //             ^ font-lock-variable-name-face
+};
+
+"
+   'javascript-mode))
+
+(ert-deftest test-font-lock-test-file--correct ()
   (ert-font-lock-test-file
    (ert-resource-file "correct.js")
    'javascript-mode))
 
-(ert-deftest test-syntax-highlight-file--invalid-mode ()
+(ert-deftest test-font-lock-test-file--invalid-mode ()
   (should-error (ert-font-lock-test-file
                  (ert-resource-file "correct.js")
                  'non-existing-mode)))
 
-(ert-deftest test-syntax-highlight-file--wrong ()
+(ert-deftest test-font-lock-test-file--wrong ()
   (should-error (ert-font-lock-test-file
                  (ert-resource-file "broken.js")
                  'javascript-mode)))
