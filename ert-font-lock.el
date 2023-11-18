@@ -2,7 +2,7 @@
 
 ;; Copyright (C) 2023 Vladimir Kazanov
 
-;; Author: Vladimir Kazanov
+;; Maintainer: Vladimir Kazanov
 ;; Keywords: lisp, test
 ;; URL: https://github.com/vkazanov/ert-font-lock
 ;; Version: 0.1.0
