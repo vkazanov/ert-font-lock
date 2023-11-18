@@ -48,7 +48,7 @@
 (defun ert-font-lock--validate-major-mode (mode)
   "Validate if MODE is a valid major mode."
   (unless (functionp mode)
-    (error "Invalid major mode: %s. Please specify a valid major mode for
+    (user-error "Invalid major mode: %s. Please specify a valid major mode for
 syntax highlighting tests" mode)))
 
 
@@ -131,7 +131,7 @@ the test."
                                  (line-end-position) t)
 
           (unless (> linetocheck -1)
-            (error "Invalid test comment syntax at line %d. Expected a line to test before the comment line" curline))
+            (user-error "Invalid test comment syntax at line %d. Expected a line to test before the comment line" curline))
 
           ;; construct a test
           (let* (;; either comment start char column (for arrows) or
