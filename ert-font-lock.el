@@ -45,6 +45,18 @@
 (require 'newcomment)
 
 
+(defconst ert-font-lock--assertion-re
+  (rx
+   ;; column specifiers
+   (group (or "^" "<-"))
+   (one-or-more " ")
+   ;; optional negation of the face specification
+   (group (optional "!"))
+   ;; face symbol name
+   (group (one-or-more (or alphanumeric "-" "_" "."))))
+  "An ert-font-lock assertion regex.")
+
+
 (defun ert-font-lock--validate-major-mode (mode)
   "Validate if MODE is a valid major mode."
   (unless (functionp mode)
@@ -127,7 +139,7 @@ the test."
           (throw 'continue t))
 
         ;; Looking at a comment? Check if it defines assertions
-        (when (re-search-forward "\\(\\^\\|<-\\) +\\(!?\\)\\([[:alnum:]\\._-]+\\)"
+        (when (re-search-forward ert-font-lock--assertion-re
                                  (line-end-position) t)
 
           (unless (> linetocheck -1)
