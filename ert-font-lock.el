@@ -6,7 +6,7 @@
 ;; Keywords: lisp, test
 ;; URL: https://github.com/vkazanov/ert-font-lock
 ;; Version: 0.1.0
-;; Package-Requires: ((emacs "29.1"))
+;; Package-Requires: ((emacs "28.1"))
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -41,7 +41,6 @@
 ;;; Code:
 
 (require 'ert)
-(require 'cl-lib)
 (require 'newcomment)
 
 
@@ -56,13 +55,11 @@
    (group (one-or-more (or alphanumeric "-" "_" "."))))
   "An ert-font-lock assertion regex.")
 
-
 (defun ert-font-lock--validate-major-mode (mode)
   "Validate if MODE is a valid major mode."
   (unless (functionp mode)
     (user-error "Invalid major mode: %s. Please specify a valid major mode for
-syntax highlighting tests" mode)))
-
+ syntax highlighting tests" mode)))
 
 (defmacro ert-font-lock-deftest (name mode test-string &optional docstring)
   "Define an ERT test NAME for font-lock syntax highlighting.
@@ -79,7 +76,6 @@ DOCSTRING is a docstring to use for the test."
        (let ((tests (ert-font-lock--parse-comments)))
          (ert-font-lock--check-faces tests)))))
 
-
 (defmacro ert-font-lock-deftest-file (name mode file &optional docstring)
   "Define an ERT test NAME for font-lock syntax highlighting.
 FILE is the path to a file in ert resource dir with test cases,
@@ -91,9 +87,9 @@ the test."
      (ert-font-lock--validate-major-mode ',mode)
      (ert-font-lock-test-file (ert-resource-file ,file) ',mode)))
 
-
 (defun ert-font-lock--line-comment-p ()
   "Return t if the current line is a comment-only line."
+  (syntax-ppss)
   (save-excursion
     (beginning-of-line)
     (skip-syntax-forward " ")
@@ -163,7 +159,7 @@ the test."
                         :negation negation)
                   tests))))
 
-      (cl-incf curline)
+      (setq curline (1+ curline))
       (forward-line 1))
 
     (reverse tests)))
