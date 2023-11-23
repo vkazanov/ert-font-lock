@@ -257,3 +257,41 @@ first
                      '((:line-checked 2 :line-assert 3 :column-checked 4 :face "comment-face" :negation nil)
                        (:line-checked 2 :line-assert 4 :column-checked 10 :face "comment-face" :negation nil)
                        (:line-checked 2 :line-assert 5 :column-checked 18 :face "comment-face" :negation nil)))))))
+
+
+(ert-deftest test-parse-comments--multiline-comment-single ()
+  (let* ((str "
+/*
+  this is a comment
+   ^ comment-face
+ */
+")
+         asserts)
+    (with-temp-buffer
+      (insert str)
+      (c-mode)
+
+      (setq asserts (ert-font-lock--parse-comments))
+      (should (eql (length asserts) 1))
+      (should (equal (car asserts)
+                     '(:line-checked 3 :line-assert 4 :column-checked 3 :face "comment-face" :negation nil))))))
+
+(ert-deftest test-parse-comments--multiline-comment-multiple ()
+  (let* ((str "
+/*
+  this is a comment
+   ^ comment-face
+  another comment
+    ^ comment-face
+ */
+")
+         asserts)
+    (with-temp-buffer
+      (insert str)
+      (c-mode)
+
+      (setq asserts (ert-font-lock--parse-comments))
+      (should (eql (length asserts) 2))
+      (should (equal asserts
+                     '((:line-checked 3 :line-assert 4 :column-checked 3 :face "comment-face" :negation nil)
+                       (:line-checked 5 :line-assert 6 :column-checked 4 :face "comment-face" :negation nil)))))))

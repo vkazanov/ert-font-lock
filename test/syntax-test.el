@@ -37,7 +37,7 @@ var abc = function(d) {
                      (ert-font-lock--parse-comments))))))
 
 
-(ert-deftest test-syntax-highlight-inline--caret-comment-face ()
+(ert-deftest test-syntax-highlight-inline--comment-face ()
   (let* ((str "
 // this is a comment
 //   ^ font-lock-comment-face
@@ -47,6 +47,25 @@ var abc = function(d) {
     (with-temp-buffer
       (insert str)
       (javascript-mode)
+      (font-lock-ensure)
+
+      (ert-font-lock--check-faces
+       (ert-font-lock--parse-comments)))))
+
+
+(ert-deftest test-syntax-highlight-inline--multiline-comment-face ()
+  (let* ((str "
+/*
+  this is a comment
+   ^ font-lock-comment-face
+  another comment
+  more comments
+    ^ font-lock-comment-face
+ */
+"))
+    (with-temp-buffer
+      (insert str)
+      (c-mode)
       (font-lock-ensure)
 
       (ert-font-lock--check-faces

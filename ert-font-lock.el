@@ -87,6 +87,24 @@ the test."
      (ert-font-lock--validate-major-mode ',mode)
      (ert-font-lock-test-file (ert-resource-file ,file) ',mode)))
 
+(defun ert-font-lock--in-comment-p ()
+  "Check if the current point is inside a comment."
+  (nth 4 (syntax-ppss)))
+
+(defun ert-font-lock--comment-start-p ()
+  "Check if the current point starts a comment."
+  (or
+   ;; regexps use syntax tables so let's check that first
+   (looking-at "\\s<")
+
+   ;; check newcomment.el facilities
+   (and comment-start (looking-at (regexp-quote comment-start)))
+   (and comment-start-skip (looking-at comment-start-skip))
+
+   ;; sometimes comment syntax is just hardcoded
+   (and (derived-mode-p 'c-mode 'c++-mode 'java-mode)
+        (looking-at-p "//"))))
+
 (defun ert-font-lock--line-comment-p ()
   "Return t if the current line is a comment-only line."
   (syntax-ppss)
@@ -96,14 +114,11 @@ the test."
     ;; skip empty lines
     (unless (eolp)
       (or
-       ;; try the most convenient approach
-       (looking-at "\\s<")
-       ;; a bit smarter
-       (and comment-start (looking-at (regexp-quote comment-start)))
-       (and comment-start-skip (looking-at comment-start-skip))
-       ;; hardcoded
-       (and (derived-mode-p 'c-mode 'c++-mode 'java-mode)
-            (looking-at-p "//"))))))
+       ;; multiline comments
+       (ert-font-lock--in-comment-p)
+
+       ;; single line comments
+       (ert-font-lock--comment-start-p)))))
 
 (defun ert-font-lock--line-assertion-p ()
   "Return t if the current line contains an assertion."
