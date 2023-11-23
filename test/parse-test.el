@@ -223,3 +223,37 @@ first
                      '((:line-checked 2 :line-assert 3 :column-checked 0 :face "face1" :negation nil)
                        (:line-checked 2 :line-assert 4 :column-checked 2 :face "face2" :negation nil)
                        (:line-checked 2 :line-assert 5 :column-checked 4 :face "face3" :negation nil)))))))
+
+(ert-deftest test-parse-comments--non-assert-comment-single ()
+  (let* ((str "
+// first
+//  ^ comment-face
+")
+         asserts)
+    (with-temp-buffer
+      (insert str)
+      (javascript-mode)
+
+      (setq asserts (ert-font-lock--parse-comments))
+      (should (eql (length asserts) 1))
+      (should (equal (car asserts)
+                     '(:line-checked 2 :line-assert 3 :column-checked 4 :face "comment-face" :negation nil))))))
+
+(ert-deftest test-parse-comments--non-assert-comment-multiple ()
+  (let* ((str "
+// first second third
+//  ^ comment-face
+//        ^ comment-face
+//                ^ comment-face
+")
+         asserts)
+    (with-temp-buffer
+      (insert str)
+      (javascript-mode)
+
+      (setq asserts (ert-font-lock--parse-comments))
+      (should (eql (length asserts) 3))
+      (should (equal asserts
+                     '((:line-checked 2 :line-assert 3 :column-checked 4 :face "comment-face" :negation nil)
+                       (:line-checked 2 :line-assert 4 :column-checked 10 :face "comment-face" :negation nil)
+                       (:line-checked 2 :line-assert 5 :column-checked 18 :face "comment-face" :negation nil)))))))

@@ -18,11 +18,13 @@
 
  - [X] example file loading helper macro
 
+ - [X] non-assertion comment line checking
+
  - [ ] package (autoloads, commentary, README, etc)
 
  - [ ] test with emacs 26.1, 27.1, 28.1 (lower dependency requirements)
 
- - [ ] try using for internal projects
+ - [ ] use for more internal projects
 
  - [ ] announce
 

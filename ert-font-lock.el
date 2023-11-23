@@ -105,6 +105,15 @@ the test."
        (and (derived-mode-p 'c-mode 'c++-mode 'java-mode)
             (looking-at-p "//"))))))
 
+(defun ert-font-lock--line-assertion-p ()
+  "Return t if the current line contains an assertion."
+  (syntax-ppss)
+  (save-excursion
+    (beginning-of-line)
+    (skip-syntax-forward " ")
+    (re-search-forward ert-font-lock--assertion-re
+                       (line-end-position) t 1)))
+
 (defun ert-font-lock--goto-first-char ()
   "Move the point to the first character."
   (beginning-of-line)
@@ -125,18 +134,26 @@ the test."
     (goto-char (point-min))
 
     ;; Go through all lines, for comments check if there are
-    ;; assertions. For non-comment line remember the last line seen.
+    ;; assertions. For non-comment and comment/non-assert lines
+    ;; remember the last line seen.
     (while (not (eobp))
-      (catch 'continue
+      (catch 'nextline
 
-        ;; Not a comment? remember line number
+        ;; Not a comment? remember the line, move to the next one
         (unless (ert-font-lock--line-comment-p)
           (setq linetocheck curline)
-          (throw 'continue t))
+          (throw 'nextline t))
 
-        ;; Looking at a comment? Check if it defines assertions
+        ;; A comment. Not an assertion? remember the line to be
+        ;; checked, move to the next line
+        (unless (ert-font-lock--line-assertion-p)
+          (setq linetocheck curline)
+          (throw 'nextline t))
+
+
+        ;; Collect the assertion
         (when (re-search-forward ert-font-lock--assertion-re
-                                 (line-end-position) t)
+                                 (line-end-position) t 1)
 
           (unless (> linetocheck -1)
             (user-error "Invalid test comment syntax at line %d. Expected a line to test before the comment line" curline))
@@ -159,6 +176,7 @@ the test."
                         :negation negation)
                   tests))))
 
+      ;; next line
       (setq curline (1+ curline))
       (forward-line 1))
 
