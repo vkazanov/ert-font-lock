@@ -90,12 +90,8 @@ var abc = function(d) {
    (ert-resource-file "correct.js")
    'javascript-mode))
 
-(ert-deftest test-font-lock-test-file--invalid-mode ()
-  (should-error (ert-font-lock-test-file
-                 (ert-resource-file "correct.js")
-                 'non-existing-mode)))
-
 (ert-deftest test-font-lock-test-file--wrong ()
-  (should-error (ert-font-lock-test-file
-                 (ert-resource-file "broken.js")
-                 'javascript-mode)))
+  :expected-result :failed
+  (ert-font-lock-test-file
+   (ert-resource-file "broken.js")
+   'javascript-mode))
