@@ -22,6 +22,8 @@
 
  - [X] assertions in multiline comments
 
+ - [ ] use ert-set-test/make-ert-test for the macro
+
  - [ ] package (autoloads, commentary, README, etc)
 
  - [ ] test with emacs 26.1, 27.1, 28.1 (lower dependency requirements)

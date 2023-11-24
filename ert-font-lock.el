@@ -43,6 +43,8 @@
 (require 'ert)
 (require 'newcomment)
 
+(require 'cl-lib)
+
 
 (defconst ert-font-lock--assertion-re
   (rx
@@ -58,23 +60,75 @@
 (defun ert-font-lock--validate-major-mode (mode)
   "Validate if MODE is a valid major mode."
   (unless (functionp mode)
-    (user-error "Invalid major mode: %s. Please specify a valid major mode for
+    (error "Invalid major mode: %S. Please specify a valid major mode for
  syntax highlighting tests" mode)))
 
-(defmacro ert-font-lock-deftest (name mode test-string &optional docstring)
-  "Define an ERT test NAME for font-lock syntax highlighting.
-TEST-STRING is the string to test, MODE is the major mode, and
-DOCSTRING is a docstring to use for the test."
-  (declare (indent 2) (debug t) (doc-string 4))
-  `(ert-deftest ,name ()
-     ,@(when docstring `(,docstring))
-     (ert-font-lock--validate-major-mode ',mode)
-     (with-temp-buffer
-       (insert ,test-string)
-       (funcall ',mode)
-       (font-lock-ensure)
-       (let ((tests (ert-font-lock--parse-comments)))
-         (ert-font-lock--check-faces tests)))))
+(cl-defmacro ert-font-lock-deftest (name &rest docstring-keys-mode-and-str)
+  "Define NAME (a symbol) as a font-lock test using assertions from
+TEST-STR using MAJOR-MODE.
+
+Other than MAJOR-MODE and TEST-STR parameteres, this macro
+accepts the same parameters and keywords as `ert-deftest' and is
+intended to be used through `ert'.
+
+\(fn NAME () [DOCSTRING] [:expected-result RESULT-TYPE] \
+[:tags \\='(TAG...)] MAJOR-MODE TEST-STR)"
+  (declare (debug (&define [&name "test@" symbolp]
+                           sexp [&optional stringp]
+        		   [&rest keywordp sexp]
+                           symbolp
+                           stringp))
+           (doc-string 3)
+           (indent 2))
+  (let ((documentation nil)
+        (documentation-supplied-p nil)
+        mode
+        str)
+
+    ;; docstring
+    (when (stringp (car docstring-keys-mode-and-str))
+      (setq documentation (pop docstring-keys-mode-and-str)
+            documentation-supplied-p t))
+
+    ;; keyword args
+    (cl-destructuring-bind
+        ((&key (expected-result nil expected-result-supplied-p)
+               (tags nil tags-supplied-p))
+         mode-and-str)
+        (ert--parse-keys-and-body docstring-keys-mode-and-str)
+
+      ;; the major mode to setup
+      (unless (symbolp (car mode-and-str))
+        (error "A major mode symbol expected: %S" mode))
+      (setq mode (pop mode-and-str))
+
+      ;; the string with code and assertions
+      (unless (stringp (car mode-and-str))
+        (error "A string with assertions expected: %S" str))
+      (setq str (pop mode-and-str))
+
+      ;; register the test
+      `(ert-set-test ',name
+                     (make-ert-test
+                      :name ',name
+                      ,@(when documentation-supplied-p
+                          `(:documentation ,documentation))
+                      ,@(when expected-result-supplied-p
+                          `(:expected-result-type ,expected-result))
+                      ,@(when tags-supplied-p
+                          `(:tags ,tags))
+                      :body (lambda ()
+                              (ert-font-lock--validate-major-mode ',mode)
+                              (with-temp-buffer
+                                (insert ,str)
+                                (funcall ',mode)
+                                (font-lock-ensure)
+                                (let ((tests (ert-font-lock--parse-comments)))
+                                  (ert-font-lock--check-faces tests)))
+                              ',name)
+
+                      :file-name ,(or (macroexp-file-name) buffer-file-name))))))
+
 
 (defmacro ert-font-lock-deftest-file (name mode file &optional docstring)
   "Define an ERT test NAME for font-lock syntax highlighting.
@@ -230,14 +284,14 @@ The function is meant to be run from within an ERT test."
 
       (when (not (eq actual-face expected-face))
         (ert-fail
-         (list (format "Expected face %s, got %s on line %d column %d"
+         (list (format "Expected face %S, got %S on line %d column %d"
                        expected-face actual-face line-checked column-checked)
                :line line-str
                :assert line-assert-str)))
 
       (when (and negation (eq actual-face expected-face))
         (ert-fail
-         (list (format "Did not expect face %s face on line %d, column %d"
+         (list (format "Did not expect face %S face on line %d, column %d"
                        actual-face line-checked column-checked)
                :line line-str
                :assert line-assert-str))))))
