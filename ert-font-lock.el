@@ -63,6 +63,7 @@
     (error "Invalid major mode: %S. Please specify a valid major mode for
  syntax highlighting tests" mode)))
 
+;;;###autoload
 (cl-defmacro ert-font-lock-deftest (name &rest docstring-keys-mode-and-str)
   "Define NAME (a symbol) as a font-lock test using assertions from
 TEST-STR using MAJOR-MODE.
@@ -129,7 +130,7 @@ intended to be used through `ert'.
 
                       :file-name ,(or (macroexp-file-name) buffer-file-name))))))
 
-
+;;;###autoload
 (cl-defmacro ert-font-lock-deftest-file (name &rest docstring-keys-mode-and-file)
   "Define NAME (a symbol) as a font-lock test using assertions from
 FILE using MAJOR-MODE.
@@ -349,6 +350,7 @@ The function is meant to be run from within an ERT test."
                :line line-str
                :assert line-assert-str))))))
 
+;;;###autoload
 (defun ert-font-lock-test-string (test-string mode)
   "Check font faces in TEST-STRING set by MODE.
 
@@ -363,6 +365,7 @@ The function is meant to be run from within an ERT test."
 
   (ert-pass))
 
+;;;###autoload
 (defun ert-font-lock-test-file (filename mode)
   "Check font faces in FILENAME set by MODE.
 
