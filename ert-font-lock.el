@@ -130,16 +130,69 @@ intended to be used through `ert'.
                       :file-name ,(or (macroexp-file-name) buffer-file-name))))))
 
 
-(defmacro ert-font-lock-deftest-file (name mode file &optional docstring)
-  "Define an ERT test NAME for font-lock syntax highlighting.
-FILE is the path to a file in ert resource dir with test cases,
-MODE is the major mode, and DOCSTRING is a docstring to use for
-the test."
-  (declare (indent 2) (debug t) (doc-string 4))
-  `(ert-deftest ,name ()
-     ,@(when docstring `(,docstring))
-     (ert-font-lock--validate-major-mode ',mode)
-     (ert-font-lock-test-file (ert-resource-file ,file) ',mode)))
+(cl-defmacro ert-font-lock-deftest-file (name &rest docstring-keys-mode-and-file)
+  "Define NAME (a symbol) as a font-lock test using assertions from
+FILE using MAJOR-MODE.
+
+FILE - path to a file with assertions in ERT resource director as
+return by `ert-resource-directory'.
+
+Other than MAJOR-MODE and FILE parameteres, this macro accepts
+the same parameters and keywords as `ert-deftest' and is intended
+to be used through `ert'.
+
+\(fn NAME () [DOCSTRING] [:expected-result RESULT-TYPE] \
+[:tags \\='(TAG...)] MAJOR-MODE FILE)"
+  (declare (debug (&define [&name "test@" symbolp]
+                           sexp [&optional stringp]
+        		   [&rest keywordp sexp]
+                           symbolp
+                           stringp))
+           (doc-string 3)
+           (indent 2))
+  (let ((documentation nil)
+        (documentation-supplied-p nil)
+        mode
+        str)
+
+    ;; docstring
+    (when (stringp (car docstring-keys-mode-and-file))
+      (setq documentation (pop docstring-keys-mode-and-file)
+            documentation-supplied-p t))
+
+    ;; keyword args
+    (cl-destructuring-bind
+        ((&key (expected-result nil expected-result-supplied-p)
+               (tags nil tags-supplied-p))
+         mode-and-file)
+        (ert--parse-keys-and-body docstring-keys-mode-and-file)
+
+      ;; the major mode to setup
+      (unless (symbolp (car mode-and-file))
+        (error "A major mode symbol expected: %S" mode))
+      (setq mode (pop mode-and-file))
+
+      ;; the string with code and assertions
+      (unless (stringp (car mode-and-file))
+        (error "A file path with assertions expected: %S" str))
+      (setq file (pop mode-and-file))
+
+      ;; register the test
+      `(ert-set-test ',name
+                     (make-ert-test
+                      :name ',name
+                      ,@(when documentation-supplied-p
+                          `(:documentation ,documentation))
+                      ,@(when expected-result-supplied-p
+                          `(:expected-result-type ,expected-result))
+                      ,@(when tags-supplied-p
+                          `(:tags ,tags))
+                      :body (lambda ()
+                              (ert-font-lock--validate-major-mode ',mode)
+                              (ert-font-lock-test-file (ert-resource-file ,file) ',mode)
+                              ',name)
+
+                      :file-name ,(or (macroexp-file-name) buffer-file-name))))))
 
 (defun ert-font-lock--in-comment-p ()
   "Check if the current point is inside a comment."

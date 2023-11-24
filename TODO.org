@@ -22,7 +22,7 @@
 
  - [X] assertions in multiline comments
 
- - [ ] use ert-set-test/make-ert-test for the macro
+ - [X] use ert-set-test/make-ert-test for the macro
 
  - [ ] package (autoloads, commentary, README, etc)
 
