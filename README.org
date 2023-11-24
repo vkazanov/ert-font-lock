@@ -68,18 +68,22 @@ Example of an ERT test file using the provided convenience macros:
   (require 'ert-font-lock)
 
   (ert-font-lock-deftest test-macro-test--correct emacs-lisp-mode
+    "An inline test"
     "
   (defun fun ())
   ;; ^ font-lock-keyword-face
   ;;      ^ font-lock-function-name-face")
 
-  (ert-font-lock-deftest test-macro-test--docstring emacs-lisp-mode
+  (ert-font-lock-deftest test-macro-test--docstring
+      "An inline test with a docstring"
+    emacs-lisp-mode
     "
   (defun fun ())
-  ;; ^ font-lock-keyword-face"
-    "An ERT test defined .")
+  ;; ^ font-lock-keyword-face")
 
-  (ert-font-lock-deftest-file test-macro-test--file javascript-mode
+  (ert-font-lock-deftest-file test-macro-test--file
+      "A file test"
+    javascript-mode
     "correct.js")
 #+end_src
 
