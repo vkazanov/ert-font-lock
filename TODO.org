@@ -30,7 +30,7 @@
 
    only works with 29.1 now because of ert's dependency
 
- - [ ] get rid of cl-lib (desctructuring-bind -> pcase)
+ - [X] get rid of cl-lib (desctructuring-bind -> pcase)
 
  - [ ] use for more internal projects
 
