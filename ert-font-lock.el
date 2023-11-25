@@ -64,7 +64,7 @@
  syntax highlighting tests" mode)))
 
 ;;;###autoload
-(cl-defmacro ert-font-lock-deftest (name &rest docstring-keys-mode-and-str)
+(defmacro ert-font-lock-deftest (name &rest docstring-keys-mode-and-str)
   "Define NAME (a symbol) as a font-lock test using assertions from
 TEST-STR using MAJOR-MODE.
 
@@ -131,7 +131,7 @@ intended to be used through `ert'.
                       :file-name ,(or (macroexp-file-name) buffer-file-name))))))
 
 ;;;###autoload
-(cl-defmacro ert-font-lock-deftest-file (name &rest docstring-keys-mode-and-file)
+(defmacro ert-font-lock-deftest-file (name &rest docstring-keys-mode-and-file)
   "Define NAME (a symbol) as a font-lock test using assertions from
 FILE using MAJOR-MODE.
 
