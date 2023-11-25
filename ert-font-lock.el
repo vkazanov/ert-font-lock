@@ -78,6 +78,29 @@
   (ert-font-lock-test-file file mode)
   test-name)
 
+(defun ert-font-lock--parse-macro-args (doc-keys-mode-arg)
+  "Validate and parse into a list macro parameter list
+DOC-KEYS-MODE-ARG."
+  (let (doc doc-p keys mode arg)
+
+    (when (stringp (car doc-keys-mode-arg))
+      (setq doc (pop doc-keys-mode-arg)
+            doc-p t))
+
+    (pcase-let
+        ((`(,keys ,mode-arg)
+          (ert--parse-keys-and-body doc-keys-mode-arg)))
+
+      (unless (symbolp (car mode-arg))
+        (error "A major mode symbol expected: %S" (car mode-arg)))
+      (setq mode (pop mode-arg))
+
+      (unless (stringp (car mode-arg))
+        (error "A string or file with assertions expected: %S" (car mode-arg)))
+      (setq arg (pop mode-arg))
+
+      (list doc doc-p keys mode arg))))
+
 ;;;###autoload
 (defmacro ert-font-lock-deftest (name &rest docstring-keys-mode-and-str)
   "Define NAME (a symbol) as a font-lock test using assertions from
@@ -96,44 +119,23 @@ intended to be used through `ert'.
                            stringp))
            (doc-string 3)
            (indent 2))
-  (let ((documentation nil)
-        (documentation-supplied-p nil)
-        mode
-        str)
+  (pcase-let ((`(,documentation
+                 ,documentation-supplied-p
+                 ,keys ,mode ,arg)
+               (ert-font-lock--parse-macro-args docstring-keys-mode-and-str)))
 
-    ;; docstring
-    (when (stringp (car docstring-keys-mode-and-str))
-      (setq documentation (pop docstring-keys-mode-and-str)
-            documentation-supplied-p t))
+    `(ert-set-test ',name
+                   (make-ert-test
+                    :name ',name
+                    ,@(when documentation-supplied-p
+                        `(:documentation ,documentation))
+                    ,@(when (map-contains-key keys :expected-result)
+                        `(:expected-result-type ,(map-elt keys :expected-result)))
+                    ,@(when (map-contains-key keys :tags)
+                        `(:tags ,(map-elt keys :tags)))
+                    :body (lambda () (ert-font-lock--test-body-str ',mode ,arg ',name))
 
-    ;; keyword args
-    (pcase-let
-        ((`(,keys ,mode-and-str)
-          (ert--parse-keys-and-body docstring-keys-mode-and-str)))
-
-      ;; the major mode to setup
-      (unless (symbolp (car mode-and-str))
-        (error "A major mode symbol expected: %S" mode))
-      (setq mode (pop mode-and-str))
-
-      ;; the string with code and assertions
-      (unless (stringp (car mode-and-str))
-        (error "A string with assertions expected: %S" str))
-      (setq str (pop mode-and-str))
-
-      ;; register the test
-      `(ert-set-test ',name
-                     (make-ert-test
-                      :name ',name
-                      ,@(when documentation-supplied-p
-                          `(:documentation ,documentation))
-                      ,@(when (map-contains-key keys :expected-result)
-                          `(:expected-result-type ,(map-elt keys :expected-result)))
-                      ,@(when (map-contains-key keys :tags)
-                          `(:tags ,(map-elt keys :tags)))
-                      :body (lambda () (ert-font-lock--test-body-str ',mode ,str ',name))
-
-                      :file-name ,(or (macroexp-file-name) buffer-file-name))))))
+                    :file-name ,(or (macroexp-file-name) buffer-file-name)))))
 
 ;;;###autoload
 (defmacro ert-font-lock-deftest-file (name &rest docstring-keys-mode-and-file)
@@ -156,43 +158,24 @@ to be used through `ert'.
                            stringp))
            (doc-string 3)
            (indent 2))
-  (let ((documentation nil)
-        (documentation-supplied-p nil)
-        mode
-        file)
 
-    ;; docstring
-    (when (stringp (car docstring-keys-mode-and-file))
-      (setq documentation (pop docstring-keys-mode-and-file)
-            documentation-supplied-p t))
+  (pcase-let ((`(,documentation
+                 ,documentation-supplied-p
+                 ,keys ,mode ,arg)
+               (ert-font-lock--parse-macro-args docstring-keys-mode-and-file)))
 
-    ;; keyword args
-    (pcase-let ((`(,keys ,mode-and-file)
-                 (ert--parse-keys-and-body docstring-keys-mode-and-file)))
-
-      ;; the major mode to setup
-      (unless (symbolp (car mode-and-file))
-        (error "A major mode symbol expected: %S" mode))
-      (setq mode (pop mode-and-file))
-
-      ;; a path to file containing code and assertions
-      (unless (stringp (car mode-and-file))
-        (error "A file path with assertions expected: %S" file))
-      (setq file (pop mode-and-file))
-
-      ;; register the test
-      `(ert-set-test ',name
-                     (make-ert-test
-                      :name ',name
-                      ,@(when documentation-supplied-p
-                          `(:documentation ,documentation))
-                      ,@(when (map-contains-key keys :expected-result)
-                          `(:expected-result-type ,(map-elt keys :expected-result)))
-                      ,@(when (map-contains-key keys :tags)
-                          `(:tags ,(map-elt keys :tags)))
-                      :body (lambda () (ert-font-lock--test-body-file
-                                   ',mode (ert-resource-file ,file) ',name))
-                      :file-name ,(or (macroexp-file-name) buffer-file-name))))))
+    `(ert-set-test ',name
+                   (make-ert-test
+                    :name ',name
+                    ,@(when documentation-supplied-p
+                        `(:documentation ,documentation))
+                    ,@(when (map-contains-key keys :expected-result)
+                        `(:expected-result-type ,(map-elt keys :expected-result)))
+                    ,@(when (map-contains-key keys :tags)
+                        `(:tags ,(map-elt keys :tags)))
+                    :body (lambda () (ert-font-lock--test-body-file
+                                 ',mode (ert-resource-file ,arg) ',name))
+                    :file-name ,(or (macroexp-file-name) buffer-file-name)))))
 
 (defun ert-font-lock--in-comment-p ()
   "Check if the current point is inside a comment."
