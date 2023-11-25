@@ -61,6 +61,23 @@
     (error "Invalid major mode: %S. Please specify a valid major mode for
  syntax highlighting tests" mode)))
 
+(defun ert-font-lock--test-body-str (mode str test-name)
+  "A body of an ERT test running assertions from a TEST-STR."
+  (ert-font-lock--validate-major-mode mode)
+  (with-temp-buffer
+    (insert str)
+    (funcall mode)
+    (font-lock-ensure)
+    (let ((tests (ert-font-lock--parse-comments)))
+      (ert-font-lock--check-faces tests)))
+  test-name)
+
+(defun ert-font-lock--test-body-file (mode file test-name)
+  "A body of an ERT test running assertions from a FILE."
+  (ert-font-lock--validate-major-mode mode)
+  (ert-font-lock-test-file file mode)
+  test-name)
+
 ;;;###autoload
 (defmacro ert-font-lock-deftest (name &rest docstring-keys-mode-and-str)
   "Define NAME (a symbol) as a font-lock test using assertions from
@@ -114,15 +131,7 @@ intended to be used through `ert'.
                           `(:expected-result-type ,(map-elt keys :expected-result)))
                       ,@(when (map-contains-key keys :tags)
                           `(:tags ,(map-elt keys :tags)))
-                      :body (lambda ()
-                              (ert-font-lock--validate-major-mode ',mode)
-                              (with-temp-buffer
-                                (insert ,str)
-                                (funcall ',mode)
-                                (font-lock-ensure)
-                                (let ((tests (ert-font-lock--parse-comments)))
-                                  (ert-font-lock--check-faces tests)))
-                              ',name)
+                      :body (lambda () (ert-font-lock--test-body-str ',mode ,str ',name))
 
                       :file-name ,(or (macroexp-file-name) buffer-file-name))))))
 
@@ -150,7 +159,7 @@ to be used through `ert'.
   (let ((documentation nil)
         (documentation-supplied-p nil)
         mode
-        str)
+        file)
 
     ;; docstring
     (when (stringp (car docstring-keys-mode-and-file))
@@ -166,9 +175,9 @@ to be used through `ert'.
         (error "A major mode symbol expected: %S" mode))
       (setq mode (pop mode-and-file))
 
-      ;; the string with code and assertions
+      ;; a path to file containing code and assertions
       (unless (stringp (car mode-and-file))
-        (error "A file path with assertions expected: %S" str))
+        (error "A file path with assertions expected: %S" file))
       (setq file (pop mode-and-file))
 
       ;; register the test
@@ -181,11 +190,8 @@ to be used through `ert'.
                           `(:expected-result-type ,(map-elt keys :expected-result)))
                       ,@(when (map-contains-key keys :tags)
                           `(:tags ,(map-elt keys :tags)))
-                      :body (lambda ()
-                              (ert-font-lock--validate-major-mode ',mode)
-                              (ert-font-lock-test-file (ert-resource-file ,file) ',mode)
-                              ',name)
-
+                      :body (lambda () (ert-font-lock--test-body-file
+                                   ',mode (ert-resource-file ,file) ',name))
                       :file-name ,(or (macroexp-file-name) buffer-file-name))))))
 
 (defun ert-font-lock--in-comment-p ()
