@@ -42,9 +42,7 @@
 
 (require 'ert)
 (require 'newcomment)
-
-(require 'cl-lib)
-
+(require 'pcase)
 
 (defconst ert-font-lock--assertion-re
   (rx
@@ -92,11 +90,9 @@ intended to be used through `ert'.
             documentation-supplied-p t))
 
     ;; keyword args
-    (cl-destructuring-bind
-        ((&key (expected-result nil expected-result-supplied-p)
-               (tags nil tags-supplied-p))
-         mode-and-str)
-        (ert--parse-keys-and-body docstring-keys-mode-and-str)
+    (pcase-let
+        ((`(,keys ,mode-and-str)
+          (ert--parse-keys-and-body docstring-keys-mode-and-str)))
 
       ;; the major mode to setup
       (unless (symbolp (car mode-and-str))
@@ -114,10 +110,10 @@ intended to be used through `ert'.
                       :name ',name
                       ,@(when documentation-supplied-p
                           `(:documentation ,documentation))
-                      ,@(when expected-result-supplied-p
-                          `(:expected-result-type ,expected-result))
-                      ,@(when tags-supplied-p
-                          `(:tags ,tags))
+                      ,@(when (map-contains-key keys :expected-result)
+                          `(:expected-result-type ,(map-elt keys :expected-result)))
+                      ,@(when (map-contains-key keys :tags)
+                          `(:tags ,(map-elt keys :tags)))
                       :body (lambda ()
                               (ert-font-lock--validate-major-mode ',mode)
                               (with-temp-buffer
@@ -162,11 +158,8 @@ to be used through `ert'.
             documentation-supplied-p t))
 
     ;; keyword args
-    (cl-destructuring-bind
-        ((&key (expected-result nil expected-result-supplied-p)
-               (tags nil tags-supplied-p))
-         mode-and-file)
-        (ert--parse-keys-and-body docstring-keys-mode-and-file)
+    (pcase-let ((`(,keys ,mode-and-file)
+                 (ert--parse-keys-and-body docstring-keys-mode-and-file)))
 
       ;; the major mode to setup
       (unless (symbolp (car mode-and-file))
@@ -184,10 +177,10 @@ to be used through `ert'.
                       :name ',name
                       ,@(when documentation-supplied-p
                           `(:documentation ,documentation))
-                      ,@(when expected-result-supplied-p
-                          `(:expected-result-type ,expected-result))
-                      ,@(when tags-supplied-p
-                          `(:tags ,tags))
+                      ,@(when (map-contains-key keys :expected-result)
+                          `(:expected-result-type ,(map-elt keys :expected-result)))
+                      ,@(when (map-contains-key keys :tags)
+                          `(:tags ,(map-elt keys :tags)))
                       :body (lambda ()
                               (ert-font-lock--validate-major-mode ',mode)
                               (ert-font-lock-test-file (ert-resource-file ,file) ',mode)
